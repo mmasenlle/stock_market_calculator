@@ -1,0 +1,23 @@
+Calculinator Development Track
+==============================
+
+Thu Apr  1 12:04:47 CEST 2010
+ Research and startup (informal)
+---------------------------------
+ -Sketch the architecture
+ -Build working repository/environment
+ -Brief research about few subjects: data feed sources, db, ...
+
+
+Thu Apr  1 19:13:40 CEST 2010
+ Data feed program I
+--------------------
+ -Start ccltor_feeder
+  +Main loop
+  +Check date and time
+  +Fetch page
+  +Parse page
+  +Basic configuration
+
+
+
