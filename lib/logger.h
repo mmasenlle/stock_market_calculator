@@ -23,22 +23,24 @@
  * Configuration of the logger behavior
  * LOG_COMPILATION_LEVEL usefull with macros
  * STD_OUTPUT also logs over stdout when level == DEBUG
- * STD_ERROR also logs over stderr when level == ERROR
- * PRINT_MILIS prints also miliseconds in the log line
- * PRINT_TID adds tid to the tag in the log line
- * LOG_TAG redefine this macro with apropiate value per module
+ * STD_ERROR also logs over stderr when lev <= ERROR
+ * PRINT_TAG prints LOGGER_TAG
+ * PRINT_TID prints tid
+ * PRINT_MILIS appends miliseconds to timestamp
+ * PRINT_FUNC prepends the function name to the log's string
  */
-#define START_LEVEL 0
+#define START_LEVEL 2
 #ifndef LOG_COMPILATION_LEVEL
-#	define LOG_COMPILATION_LEVEL	DEBUG_L
+#	define LOG_COMPILATION_LEVEL DEBUG_L
 #	undef START_LEVEL
 #	define START_LEVEL DEBUG_L
 #endif
 //#define STD_OUTPUT
 //#define STD_ERROR
-#define PRINT_MILIS
-//#define PRINT_TID
 //#define PRINT_TAG
+//#define PRINT_TID
+#define PRINT_MILIS
+#define PRINT_FUNC
 
 class Logger
 {
@@ -66,7 +68,11 @@ inline Logger::Logger(const char *fn)
 }
 
 template<int lev>
-void Logger::log(const char *tag, const char *fmt, ...)
+void Logger::log(
+#ifdef PRINT_FUNC
+	const char *func,
+#endif
+	const char *fmt, ...)
 {
 	struct timeval tv;
 	struct tm tm;
@@ -76,8 +82,8 @@ void Logger::log(const char *tag, const char *fmt, ...)
 	strftime( buf, sizeof( buf ), "%F %k:%M:%S", &tm );
 	std::ostringstream aux;
 	aux << "[";
-#ifdef PRINT_TAG
-	<< tag;
+#if defined(PRINT_TAG) && defined(LOGGER_TAG)
+	aux << LOGGER_TAG;
 #endif
 #ifdef PRINT_TID	
 	aux << "(" << (unsigned int)pthread_self() << ") ";
@@ -91,15 +97,17 @@ void Logger::log(const char *tag, const char *fmt, ...)
 	switch (lev)
 	{
 	case SYSERR_L:
-		aux << "[SYSERR] errno: " << errno << " '" <<
-			strerror_r(errno, buf, sizeof(buf)) << "' => ";
+		aux << "[SYSERR] " << errno << " '" <<
+			strerror_r(errno, buf, sizeof(buf)) << "': ";
 		break;
 	case ERROR_L: aux << "[ERROR] "; break;
 	case WARN_L:  aux << "[WARN ] "; break;
 	case INFO_L:  aux << "[INFO ] "; break;
 	case DEBUG_L: aux << "[DEBUG] "; break;
-	default:		  aux << "-***** -> "; break;
 	}
+#ifdef PRINT_FUNC
+	aux << func;
+#endif
 	va_list args;
 	va_start( args, fmt );
 	vsnprintf( buf, sizeof( buf ), fmt, args );
@@ -120,12 +128,17 @@ void Logger::log(const char *tag, const char *fmt, ...)
 #define END_DEFAULT_LOGGER delete Logger::defaultLogger; Logger::defaultLogger = NULL
 #define SET_LOGGER_LEVEL(l) if (Logger::defaultLogger) Logger::defaultLogger->level = l
 
-#define LOG_TAG "--"
+#ifdef PRINT_FUNC
+#define FUNC_ARG __FUNCTION__,
+#else
+#define FUNC_ARG
+#endif
+#define __PRE_LOG(lev) do { if (__builtin_expect(!!(Logger::defaultLogger), 1) && \
+    __builtin_expect((Logger::defaultLogger->level >= lev), 0)) \
+        Logger::defaultLogger->log<lev> ( FUNC_ARG
 
-#define __PRE_LOG(lev) do { if (__builtin_expect(!!(Logger::defaultLogger), 1) && __builtin_expect((Logger::defaultLogger->level >= lev), 0)) Logger::defaultLogger->log<lev>
-
-#define SELOG(fmt, args...) __PRE_LOG(SYSERR_L) (LOG_TAG, fmt, ## args) ; } while(0)
-#define ELOG(fmt, args...)  __PRE_LOG(ERROR_L)  (LOG_TAG, fmt, ## args) ; } while(0)
+#define SELOG(fmt, args...) __PRE_LOG(SYSERR_L) fmt, ## args) ; } while(0)
+#define ELOG(fmt, args...)  __PRE_LOG(ERROR_L)  fmt, ## args) ; } while(0)
 #define WLOG(fmt, args...)
 #define ILOG(fmt, args...)
 #define DLOG(fmt, args...)
@@ -133,13 +146,13 @@ void Logger::log(const char *tag, const char *fmt, ...)
 
 #if LOG_COMPILATION_LEVEL >= WARN_L
 #	undef WLOG
-#	define WLOG(fmt, args...) __PRE_LOG(WARN_L) (LOG_TAG, fmt, ## args) ; } while(0)
+#	define WLOG(fmt, args...) __PRE_LOG(WARN_L) fmt, ## args) ; } while(0)
 #	if LOG_COMPILATION_LEVEL >= INFO_L
 #		undef ILOG
-#		define ILOG(fmt, args...) __PRE_LOG(INFO_L) (LOG_TAG, fmt, ## args) ; } while(0)
+#		define ILOG(fmt, args...) __PRE_LOG(INFO_L) fmt, ## args) ; } while(0)
 #		if LOG_COMPILATION_LEVEL >= DEBUG_L
 #			undef DLOG
-#			define DLOG(fmt, args...) __PRE_LOG(DEBUG_L) (LOG_TAG, fmt, ## args) ; } while(0)
+#			define DLOG(fmt, args...) __PRE_LOG(DEBUG_L) fmt, ## args) ; } while(0)
 #			undef DUMPLOG
 #			define DUMPLOG(buf, len) do { if (Logger::defaultLogger) Logger::defaultLogger->dump(buf, len); } while(0)
 #		endif
