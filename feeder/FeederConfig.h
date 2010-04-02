@@ -5,12 +5,15 @@
 
 class FeederConfig : public CcltorConfig
 {
+    FeederConfig();
+
 public:
     int sdelay;
     int days_off;
     int time_start, time_end;
-    int register_port;
+    int events_port;
     std::string url;
+    std::string parser;
 
     static void init(int argc, char *argv[]);
     static FeederConfig feederConfig;

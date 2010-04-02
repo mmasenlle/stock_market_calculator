@@ -47,11 +47,11 @@ class Logger
 public:
 	int fd;
 	int level;
-	static /*__thread*/ Logger *defaultLogger;
+	static Logger *defaultLogger;
 	Logger(const char *fn = NULL);
 	~Logger();
 	template<int lev> void log(const char *tag, const char *fmt, ...);
-	void dump(const char *buf, int len) { ::write(fd, buf, len); };
+	void dump(const char *buf, int len) { int ignored = ::write(fd, buf, len); };
 };
 
 inline Logger::Logger(const char *fn)
@@ -113,14 +113,14 @@ void Logger::log(
 	vsnprintf( buf, sizeof( buf ), fmt, args );
 	va_end( args );
 	aux << buf << "\n";
-	write(fd, aux.str().c_str(), aux.str().length());
+	int ignored = write(fd, aux.str().c_str(), aux.str().length());
 	
 #if defined(STD_OUTPUT) && (LOG_COMPILATION_LEVEL >= DEBUG_L)
 	if (fd > 1)
-		write(1, aux.str().c_str(), aux.str().length());
+		int ignored = write(1, aux.str().c_str(), aux.str().length());
 #elif defined(STD_ERROR)
 	if (lev <= ERROR_L && fd > 2)
-		write(2, aux.str().c_str(), aux.str().length());
+		int ignored = write(2, aux.str().c_str(), aux.str().length());
 #endif
 }
 
