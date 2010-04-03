@@ -26,7 +26,7 @@ XPathConfig::XPathConfig(const char *arg, int len)
 	}
 }
 
-bool XPathConfig::ok()
+bool XPathConfig::ok() const
 {
 	return (xpathCtx != NULL);
 }
@@ -44,7 +44,7 @@ XPathConfig::~XPathConfig()
 	xmlCleanupParser();
 }
 
-int XPathConfig::getValue(const char *key, std::string *val, int ins)
+int XPathConfig::getValue(const char *key, std::string *val, int ins) const
 {  
     xmlXPathObjectPtr xpathObj; 
 

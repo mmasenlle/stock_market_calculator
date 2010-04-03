@@ -1,0 +1,5 @@
+<!-- ccltor.xml configuration file example -->
+<ccltor>
+    <log_level>5</log_level>
+</ccltor>
+

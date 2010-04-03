@@ -12,8 +12,8 @@ class XPathConfig
 public:
 	XPathConfig(const char *arg, int len = 0);
 	~XPathConfig();
-	int getValue(const char *key, std::string *val, int ins = 0);
-	bool ok();
+	int getValue(const char *key, std::string *val, int ins = 0) const;
+	bool ok() const;
 };
 
 #endif

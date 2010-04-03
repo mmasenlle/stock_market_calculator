@@ -39,8 +39,8 @@
 //#define STD_ERROR
 //#define PRINT_TAG
 //#define PRINT_TID
-#define PRINT_MILIS
-#define PRINT_FUNC
+//#define PRINT_MILIS
+//#define PRINT_FUNC
 
 class Logger
 {
@@ -48,14 +48,18 @@ public:
 	int fd;
 	int level;
 	static Logger *defaultLogger;
-	Logger(const char *fn = NULL);
+	Logger(const char *fn = NULL, int start_level = START_LEVEL);
 	~Logger();
-	template<int lev> void log(const char *tag, const char *fmt, ...);
+	template<int lev> void log(
+#ifdef PRINT_FUNC
+    	const char *func,
+#endif
+        const char *fmt, ...);
 	void dump(const char *buf, int len) { int ignored = ::write(fd, buf, len); };
 };
 
-inline Logger::Logger(const char *fn)
- : level(START_LEVEL), fd(1)
+inline Logger::Logger(const char *fn, int start_level)
+ : level(start_level), fd(1)
 {
 	if (fn)
 	{

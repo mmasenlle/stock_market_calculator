@@ -6,11 +6,12 @@
 class FeederConfig : public CcltorConfig
 {
     FeederConfig();
+    void print_help();
 
 public:
     int sdelay;
     int days_off;
-    int time_start, time_end;
+    int time_start, time_stop;
     int events_port;
     std::string url;
     std::string parser;
