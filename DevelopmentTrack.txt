@@ -18,6 +18,12 @@ Thu Apr  1 19:13:40 CEST 2010
   +Fetch page
   +Parse page
   +Basic configuration
-
+Comments:
+The parse will be split in two parts: one that will be handled with an
+external program/script, and other built-in. This way we can have separate
+parser for different sources. The first parser will translate the data to a
+well known xml sintax that the built-in parser will handle. The external
+parsers will be created when needed, and will be expecified in the
+configuration with the url.
 
 
