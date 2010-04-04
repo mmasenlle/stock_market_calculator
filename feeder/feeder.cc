@@ -6,6 +6,7 @@
 #include <poll.h>
 #include "logger.h"
 #include "FeederConfig.h"
+#include "XmlParser.h"
 
 #define WGET_EXEC_ARGUMENTS(_url) "wget", "wget", "-q", "-O", "-", _url, NULL
 #define PARSER_EXEC_ARGUMENTS(_parser) _parser, _parser, NULL
@@ -94,30 +95,28 @@ static void feed(struct timeval *fetch_timestamp)
 	}
 	close(pd_wget[0]);
 	close(pd_parser[1]);
-//read and parse xml
-	char buffer[4096];
-	int r, n = 0;
-	while ((r = read(pd_parser[0], buffer, sizeof(buffer))) > 0)
+
+	XmlParser xmlParser;
+	for (;;)
 	{
-		n += r;
-		//TODO: parse buffer or store for later processing
-		DLOG("feeder:feed() -> read %d ----------", r);
-		DUMPLOG(buffer, r);
-		DLOG("--------------");
+		char buffer[4096];
+		int r = read(pd_parser[0], buffer, sizeof(buffer));
+		if (r == 0) break;
+		else if (r == -1 && errno == EINTR) continue;
+		else if (r == -1)
+		{
+			SELOG("feeder:feed() -> reading from parser");
+			close(pd_parser[0]);
+			return;
+		}
+		xmlParser.parse(buffer, r);
 	}
 	close(pd_parser[0]);
-	if (r == -1)
-	{
-		SELOG("feeder:feed() -> reading from parser");
-		return;
-	}
 	if (gettimeofday(fetch_timestamp, NULL) == -1)
 	{
 		SELOG("feeder:feed() -> gettimeofday");
 	}
-	//TODO: send result to db
-	ILOG("feeder:feed() -> data feed ends successfully");
-
+	xmlParser.store(fetch_timestamp);
 }
 
 int main(int argc, char *argv[])
