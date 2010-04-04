@@ -1,49 +1,170 @@
 
 #include <sys/time.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <time.h>
 #include <poll.h>
 #include "logger.h"
 #include "FeederConfig.h"
 
-#define SECONDS_IN_A_DAY (24 * 3600)
+#define WGET_EXEC_ARGUMENTS(_url) "wget", "wget", "-q", "-O", "-", _url, NULL
+#define PARSER_EXEC_ARGUMENTS(_parser) _parser, _parser, NULL
+
+static int pid_wget;
+static void sigchld_handler(int s)
+{
+	int status, pid;
+	if ((pid = wait(&status)) == -1)
+	{
+		SELOG("feeder:feed() -> wait");
+	}
+	else
+	{
+		if (WIFEXITED(status))
+		{
+			char ret = WEXITSTATUS(status);
+			DLOG("feeder:feed() -> %s(%d) ends with %d", (pid == pid_wget) ? "wget" : "parser", pid, ret);
+			if (ret != 0)
+			{
+				ELOG("feeder:feed() -> %s(%d) failed with %d",
+				    (pid == pid_wget) ? "wget" : FeederConfig::feederConfig.parser.c_str(), pid, ret);
+			}
+		}
+		else
+		{
+			ELOG("feeder:feed() -> %s(%d) ends/hangs with a signal or other event",
+			    (pid == pid_wget) ? "wget" : FeederConfig::feederConfig.parser.c_str(), pid);
+		}
+	}
+}
+
+static void feed(struct timeval *fetch_timestamp)
+{
+	DLOG("feeder:feed(%s, %s)", FeederConfig::feederConfig.url.c_str(), FeederConfig::feederConfig.parser.c_str());
+	int pd_wget[2];
+	if (pipe(pd_wget) == -1)
+	{
+		SELOG("feeder:feed() -> pipe(pd_wget)");
+		return;
+	}
+	pid_wget = fork();
+	if (pid_wget == -1)
+	{
+		SELOG("feeder:feed() -> fork(wget)");
+		close(pd_wget[0]); close(pd_wget[1]);
+		return;
+	}
+	if (pid_wget == 0)
+	{
+		if (close(1) || dup(pd_wget[1]) != 1 || close(pd_wget[0]))
+        {
+			exit(-1);
+		}
+        execlp(WGET_EXEC_ARGUMENTS(FeederConfig::feederConfig.url.c_str()));
+        exit(-1);
+	}
+	close(pd_wget[1]);
+	int pd_parser[2];
+	if (pipe(pd_parser) == -1)
+	{
+		SELOG("feeder:feed() -> pipe(pd_parser)");
+		close(pd_wget[0]);
+		return;
+	}
+	int pid_parser = fork();
+	if (pid_parser == -1)
+	{
+		SELOG("feeder:feed() -> fork(parser)");
+		close(pd_wget[0]); close(pd_parser[0]); close(pd_parser[1]);
+		wait(NULL);
+		return;
+	}
+	if (pid_parser == 0)
+	{
+		if (close(0) || dup(pd_wget[0]) != 0)
+        {
+			exit(-1);
+		}
+		if (close(1) || dup(pd_parser[1]) != 1 || close(pd_parser[0]))
+        {
+			exit(-1);
+		}
+        execlp(PARSER_EXEC_ARGUMENTS(FeederConfig::feederConfig.parser.c_str()));
+        exit(-1);
+	}
+	close(pd_wget[0]);
+	close(pd_parser[1]);
+//read and parse xml
+	char buffer[4096];
+	int r, n = 0;
+	while ((r = read(pd_parser[0], buffer, sizeof(buffer))) > 0)
+	{
+		n += r;
+		//TODO: parse buffer or store for later processing
+		DLOG("feeder:feed() -> read %d ----------", r);
+		DUMPLOG(buffer, r);
+		DLOG("--------------");
+	}
+	close(pd_parser[0]);
+	if (r == -1)
+	{
+		SELOG("feeder:feed() -> reading from parser");
+		return;
+	}
+	if (gettimeofday(fetch_timestamp, NULL) == -1)
+	{
+		SELOG("feeder:feed() -> gettimeofday");
+	}
+	//TODO: send result to db
+	ILOG("feeder:feed() -> data feed ends successfully");
+
+}
 
 int main(int argc, char *argv[])
 {
     FeederConfig::init(argc, argv);
+	signal(SIGCHLD, sigchld_handler);
 
-    struct timeval fetch_timestamp;
+    struct timeval fetch_timestamp = { 0 };
     for (;;)
     {
         for (;;)
         {
-            struct timeval now; gettimeofday(&now, NULL);
-            struct tm tm; localtime_r(&now.tv_sec, &tm);
+            struct timeval now;
+			if (gettimeofday(&now, NULL) == -1)
+			{
+				SELOG("feeder:main() -> gettimeofday");
+			}
+            struct tm tm;
+			if (localtime_r(&now.tv_sec, &tm) == NULL)
+			{
+				SELOG("feeder:main() -> localtime_r");
+			}
             int wait_time, day_min = (tm.tm_hour * 60) + tm.tm_min;
             if ((FeederConfig::feederConfig.days_off & (1 << tm.tm_wday)) ||
-                (FeederConfig::feederConfig.time_stop > day_min))
+                (FeederConfig::feederConfig.time_stop < day_min))
             {
-                wait_time = SECONDS_IN_A_DAY - (now.tv_sec % SECONDS_IN_A_DAY);
+                wait_time = (24 * 3600) - ((day_min * 60) + tm.tm_sec);
             }
-            else if (FeederConfig::feederConfig.time_start < day_min)
+            else if (FeederConfig::feederConfig.time_start > day_min)
             {
-                wait_time = (day_min - FeederConfig::feederConfig.time_start) * 60;
+                wait_time = (FeederConfig::feederConfig.time_start - day_min) * 60;
             }
             else
             {
-                wait_time = now.tv_sec -
-                    fetch_timestamp.tv_sec - FeederConfig::feederConfig.sdelay;
+                wait_time = fetch_timestamp.tv_sec +
+					FeederConfig::feederConfig.sdelay - now.tv_sec;
                 if (wait_time <= 0) break;
             }
             DLOG("feeder:main() -> wait_time %d", wait_time);
-            if (poll(NULL, 0, wait_time * 1000) == -1)
+            if (poll(NULL, 0, wait_time * 1000) == -1 && errno != EINTR)
             {
                 SELOG("feeder:main() -> poll(%d, %d, %d)", 0, 0, wait_time * 1000);
             }
         }
-        // fetch page
-        // parse page
-        // store page
-        // notify
+        feed(&fetch_timestamp);
+		
+        //TODO: notify ?
     }
 }
 
