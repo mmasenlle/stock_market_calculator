@@ -7,7 +7,7 @@ INSTALL_DIR ?= ~/calculinator
 INCLUDE = -I$(SRC_ROOT)/lib -I$(SRC_ROOT)/ccltor -I/usr/include/libxml2
 LDFLAGS = $(SRC_ROOT)/lib/ccltor_lib.a $(SRC_ROOT)/ccltor/ccltor.a -lxml2
 
-CPPFLAGS = -DCCLTOR_VERSION="\"$(CCLTOR_VERSION)\""
+CPPFLAGS =
 
 RELEASE_FLAGS = -march=native -O3 -pipe -DLOG_COMPILATION_LEVEL=4 -DNDEBUG
 DEBUG_FLAGS = -g
