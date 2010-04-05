@@ -29,8 +29,8 @@ void CcltorConfig::init_pre(CcltorConfig *cfg, int argc, char *argv[])
     FOR_OPT(argc, argv)
     {
     case 'v':
-        fprintf(stdout, "%s\ncalculinator suite v" CCLTOR_VERSION "\n"
-		"Rev " CCLTOR_REVISION "\nBuild " __DATE__ " (" __TIME__ ")"
+        fprintf(stdout, "%s\nCalculinator Suite v" CCLTOR_VERSION "\n"
+		"Rev " CCLTOR_REVISION "\nBuilt " __DATE__ " (" __TIME__ ")"
 #ifndef NDEBUG
 		" debug\n\n", argv[0]);
 #else
