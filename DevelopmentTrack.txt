@@ -27,3 +27,11 @@ parsers will be created when needed, and will be expecified in the
 configuration with the url.
 
 
+Wed Apr  7 23:08:53 CEST 2010
+ DB setup
+----------
+ -Install the DBMS, create a db, users, etc.
+ -Sketch a DB schema for the system.
+ -Create scripts to build the first approach of the schema.
+
+
