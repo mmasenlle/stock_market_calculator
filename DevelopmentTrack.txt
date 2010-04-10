@@ -22,7 +22,7 @@ Comments:
 The parse will be split in two parts: one that will be handled with an
 external program/script, and other built-in. This way we can have separate
 parser for different sources. The first parser will translate the data to a
-well known xml sintax that the built-in parser will handle. The external
+well known xml syntax that the built-in parser will handle. The external
 parsers will be created when needed, and will be expecified in the
 configuration with the url.
 
@@ -33,5 +33,13 @@ Wed Apr  7 23:08:53 CEST 2010
  -Install the DBMS, create a db, users, etc.
  -Sketch a DB schema for the system.
  -Create scripts to build the first approach of the schema.
+
+
+Sat Apr 10 20:20:05 CEST 2010
+ Data feed program II
+---------------------
+ -Continue ccltor_feeder
+  +Sending of data to the db
+  +An observer/notifier mechanism
 
 
