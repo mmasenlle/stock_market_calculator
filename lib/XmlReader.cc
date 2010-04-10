@@ -107,7 +107,7 @@ int XmlReader::read(const char *buf, int len)
 					if (match_string(root_label))
 					{
 						state = XMLREADER_ST_DONE;
-						done_cb();
+						done();
 					}
 				}
 				else

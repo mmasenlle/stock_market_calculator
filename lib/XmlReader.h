@@ -23,7 +23,7 @@ protected:
 
 	virtual const char * match_value(int hint) = 0;
 	virtual XmlReader * match_tree(int hint) = 0;
-	virtual void done_cb() {};
+	virtual void done() {};
 	
 	XmlReader(const char *root);
 
