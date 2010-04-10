@@ -6,7 +6,7 @@
 #include <poll.h>
 #include "logger.h"
 #include "FeederConfig.h"
-#include "XmlParser.h"
+#include "XmlReaderData.h"
 
 #define WGET_EXEC_ARGUMENTS(_url) "wget", "wget", "-q", "-O", "-", _url, NULL
 #define PARSER_EXEC_ARGUMENTS(_parser) _parser, _parser, NULL
@@ -39,7 +39,7 @@ static void sigchld_handler(int s)
 	}
 }
 
-static void feed(struct timeval *fetch_timestamp)
+static void feed()
 {
 	DLOG("feeder:feed(%s, %s)", FeederConfig::feederConfig.url.c_str(), FeederConfig::feederConfig.parser.c_str());
 	int pd_wget[2];
@@ -96,7 +96,7 @@ static void feed(struct timeval *fetch_timestamp)
 	close(pd_wget[0]);
 	close(pd_parser[1]);
 
-	XmlParser xmlParser;
+	XmlReaderData xmlReader;
 	for (;;)
 	{
 		char buffer[4096];
@@ -109,14 +109,9 @@ static void feed(struct timeval *fetch_timestamp)
 			close(pd_parser[0]);
 			return;
 		}
-		xmlParser.parse(buffer, r);
+		xmlReader.read(buffer, r);
 	}
 	close(pd_parser[0]);
-	if (gettimeofday(fetch_timestamp, NULL) == -1)
-	{
-		SELOG("feeder:feed() -> gettimeofday");
-	}
-	xmlParser.store(fetch_timestamp);
 }
 
 int main(int argc, char *argv[])
@@ -124,7 +119,7 @@ int main(int argc, char *argv[])
     FeederConfig::init(argc, argv);
 	signal(SIGCHLD, sigchld_handler);
 
-    struct timeval fetch_timestamp = { 0 };
+    struct timeval last_feed = { 0 };
     for (;;)
     {
         for (;;)
@@ -132,7 +127,7 @@ int main(int argc, char *argv[])
             struct timeval now;
 			if (gettimeofday(&now, NULL) == -1)
 			{
-				SELOG("feeder:main() -> gettimeofday");
+				SELOG("feeder:main() -> gettimeofday(now)");
 			}
             struct tm tm;
 			if (localtime_r(&now.tv_sec, &tm) == NULL)
@@ -151,7 +146,7 @@ int main(int argc, char *argv[])
             }
             else
             {
-                wait_time = fetch_timestamp.tv_sec +
+                wait_time = last_feed.tv_sec +
 					FeederConfig::feederConfig.sdelay - now.tv_sec;
                 if (wait_time <= 0) break;
             }
@@ -161,7 +156,11 @@ int main(int argc, char *argv[])
                 SELOG("feeder:main() -> poll(%d, %d, %d)", 0, 0, wait_time * 1000);
             }
         }
-        feed(&fetch_timestamp);
+		if (gettimeofday(&last_feed, NULL) == -1)
+		{
+			SELOG("feeder:main() -> gettimeofday(last_feed)");
+		}
+        feed();
 		
         //TODO: notify ?
     }
