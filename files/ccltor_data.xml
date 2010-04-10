@@ -1,0 +1,20 @@
+<!-- ccltor_xml_data example -->
+<ccltor_xml_data>
+    <value>
+    	<code>code0</code>
+    	<name>name0</name>
+    	<price>10.1</price>
+    	<volume>100.1</volume>
+    	<capital>1000</capital>
+    	<time>12:04</time>
+    </value>
+    <value>
+    	<code>code1</code>
+    	<name>name1</name>
+    	<price>11.1</price>
+    	<volume>110.1</volume>
+    	<capital>1100</capital>
+    	<time>12:14</time>
+    </value>
+</ccltor_xml_data>
+
