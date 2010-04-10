@@ -7,12 +7,14 @@
 class CcltorConfig
 {
 protected:
+	CcltorConfig();
     static void init_pre(CcltorConfig *cfg, int argc, char *argv[]);
     static void init_post(CcltorConfig *cfg, const XPathConfig &xpc,
         const char *key, int argc, char *argv[]);
     virtual void print_help() = 0;
 
 public:
+	int ic_port;
     int log_level;
 
     std::string cfg_fname;

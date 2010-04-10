@@ -6,7 +6,7 @@
     <days_off>1000001</days_off>
     <time_start>8:30</time_start>
     <time_stop>17:30</time_stop>
-    <events_port>23000</events_port>
+    <ic_port>17100</ic_port>
     <log_level>5</log_level>
     <log_fname>_</log_fname>
 </feeder>

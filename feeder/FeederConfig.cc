@@ -10,7 +10,7 @@ FeederConfig::FeederConfig()
     days_off = 0;
     time_start = 0;
     time_stop = 24 * 60;
-    events_port = 20800;
+    ic_port = 17100;
 }
 
 void FeederConfig::init(int argc, char *argv[])
@@ -39,9 +39,6 @@ void FeederConfig::init(int argc, char *argv[])
         if (sscanf(xp_value.c_str(), "%d:%d", &h, &m) == 2)
             feederConfig.time_stop = (h * 60) + m;
     }
-    if (xpconf.getValue((key + "/events_port").c_str(), &xp_value))
-        feederConfig.events_port = atoi(xp_value.c_str());
-
     xpconf.getValue((key + "/url").c_str(), &feederConfig.url);
     xpconf.getValue((key + "/parser").c_str(), &feederConfig.parser);
 
@@ -59,9 +56,9 @@ void FeederConfig::init(int argc, char *argv[])
     DLOG("FeederConfig::init() days_off = %x", feederConfig.days_off);
     DLOG("FeederConfig::init() time_start = %d", feederConfig.time_start);
     DLOG("FeederConfig::init() time_stop = %d", feederConfig.time_stop);
-    DLOG("FeederConfig::init() events_port = %d", feederConfig.events_port);
     DLOG("FeederConfig::init() url = '%s'", feederConfig.url.c_str());
     DLOG("FeederConfig::init() parser = '%s'", feederConfig.parser.c_str());
+	DLOG("FeederConfig::init() ic_port = %d", feederConfig.ic_port);
     DLOG("FeederConfig::init() log_level = %d", feederConfig.log_level);
     DLOG("FeederConfig::init() cfg_fname = '%s'", feederConfig.cfg_fname.c_str());
     DLOG("FeederConfig::init() log_fname = '%s'", feederConfig.log_fname.c_str());

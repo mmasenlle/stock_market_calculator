@@ -12,7 +12,6 @@ public:
     int sdelay;
     int days_off;
     int time_start, time_stop;
-    int events_port;
     std::string url;
     std::string parser;
 

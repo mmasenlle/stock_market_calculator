@@ -5,16 +5,22 @@
 
 #define CCLTOR_CONF_FNAME "ccltor.xml"
 
-#define LOG_LEVEL_KEY "/log_level"
-#define LOG_FNAME_KEY "/log_fname"
+#define IC_PORT_KEY		"/ic_port"
+#define LOG_FNAME_KEY 	"/log_fname"
+#define LOG_LEVEL_KEY 	"/log_level"
+
 #define CCLTOR_LOG_LEVEL_KEY "/ccltor" LOG_LEVEL_KEY
 
 #define CCLTOR_LOG_LEVEL_ENV "CCLTOR_LOG_LEVEL"
 
+CcltorConfig::CcltorConfig()
+{
+	ic_port = 17000;
+	log_level = 2;
+}
 
 void CcltorConfig::init_pre(CcltorConfig *cfg, int argc, char *argv[])
 {
-    cfg->log_level = 2;
     cfg->cfg_fname = argv[0]; cfg->cfg_fname += ".xml";
     cfg->log_fname = argv[0]; cfg->log_fname += ".log";
 
@@ -59,6 +65,8 @@ void CcltorConfig::init_post(CcltorConfig *cfg, const XPathConfig &xpc,
     const char *key, int argc, char *argv[])
 {
     std::string xp_value, skey = key;
+	if (xpc.getValue((skey + IC_PORT_KEY).c_str(), &xp_value))
+        cfg->ic_port = atoi(xp_value.c_str());
     if (xpc.getValue((skey + LOG_LEVEL_KEY).c_str(), &xp_value))
         cfg->log_level = atoi(xp_value.c_str());
     xpc.getValue((skey + LOG_FNAME_KEY).c_str(), &cfg->log_fname);
