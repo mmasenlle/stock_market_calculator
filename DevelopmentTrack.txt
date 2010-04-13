@@ -41,5 +41,10 @@ Sat Apr 10 20:20:05 CEST 2010
  -Continue ccltor_feeder
   +Sending of data to the db
   +An observer/notifier mechanism
-
+Comments:
+For the intercommunications of the tasks, sending events and so on, there
+will be a IC subsystem in the folder: ccltor/ic. The messages Event,
+MsgRegister, Raw, etc, will be binded in classes.
+For the db access, the classes to isolate the DBMS will be in the ccltor/db
+folder.
 
