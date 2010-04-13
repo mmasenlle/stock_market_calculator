@@ -5,7 +5,7 @@ install_dirs = feeder
 
 build_dirs = lib ccltor $(install_dirs)
 
-.PHONY: all clean install
+.PHONY: all clean install src
 
 all:
 	for i in $(build_dirs); do \
@@ -22,3 +22,5 @@ clean:
 		$(MAKE) -C $$i clean; \
 	done
 
+src:	clean
+	tar cvzf  ../ccltor_src`date +%F`.tar.gz --exclude .git `ls` 
