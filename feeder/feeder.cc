@@ -8,8 +8,43 @@
 #include "FeederConfig.h"
 #include "XmlReaderData.h"
 
-#define WGET_EXEC_ARGUMENTS(_url) "wget", "wget", "-q", "-O", "-", _url, NULL
-#define PARSER_EXEC_ARGUMENTS(_parser) _parser, _parser, NULL
+/*
+examples
+ 
+static ICEvent feed_event(ICEVENT_FEEDER_NEWFEED);
+
+observers.notify(&feederIC, &feed_event);
+
+ICPeer peer;
+ICMsg *msg = NULL;
+if (ic.receive(&msg, &peer) < 0)
+	//error
+else if(msg)
+{
+	switch (msg->getClass())
+	{
+	case ICMSGCLASS_EVENT:
+		handleEvent((ICEvent*)msg, &peer);
+		break;
+	default:
+		// unknown msg class
+	}
+}
+
+void handleEvent(const ICEvent *event, const ICPeer *peer)
+{
+	switch (event->getEvent())
+	{
+	case ICEVENT_FEEDER_REGISTER:
+		observers.add(peer);
+		break;
+
+	default:
+		// unknown event
+	}
+}
+
+ */
 
 static int pid_wget;
 static void sigchld_handler(int s)
@@ -38,6 +73,9 @@ static void sigchld_handler(int s)
 		}
 	}
 }
+
+#define WGET_EXEC_ARGUMENTS(_url) "wget", "wget", "-q", "-O", "-", _url, NULL
+#define PARSER_EXEC_ARGUMENTS(_parser) _parser, _parser, NULL
 
 static void feed()
 {
@@ -165,5 +203,3 @@ int main(int argc, char *argv[])
         //TODO: notify ?
     }
 }
-
-            

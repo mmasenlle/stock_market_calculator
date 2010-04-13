@@ -5,7 +5,7 @@ CPPFLAGS += -DCCLTOR_VERSION="\"$(CCLTOR_VERSION)\"" \
 	-DCCLTOR_REVISION="\"$(shell cat $(SRC_ROOT)/.git/refs/heads/master)\""
 TARGET = ccltor.a
 
-sources = $(wildcard *.cc) $(wildcard ic/*.cc)
+sources = $(wildcard *.cc) $(wildcard ic/*.cc) $(wildcard db/*.cc)
 objects = $(sources:.cc=.o)
 
 all:	$(TARGET)
@@ -17,4 +17,4 @@ $(objects): %.o: %.cc $(SRC_ROOT)/flags.mk
 	$(CXX) -c $(CPPFLAGS) $(INCLUDE) $(CXXFLAGS) $< -o $@
 
 clean:
-	rm -f ic/*.o *.o *.a
+	rm -f db/*.o ic/*.o *.o *.a

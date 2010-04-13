@@ -23,6 +23,7 @@ protected:
 	ICMsg(int mc) : mclass(mc) {};
 	int send_msg(const CcltorIC *ic, const ICPeer *peer, char *buf, int len) const;
 public:
+	virtual ~ICMsg() {};
 	int getClass() const { return mclass; };
 	virtual int send(const CcltorIC *ic, const ICPeer *peer) const = 0;
 	static ICMsg *create(const char *msg, int len);

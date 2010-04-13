@@ -49,7 +49,7 @@ void XmlReaderValue::done()
 		return;
 	}
 	code = values[CODE][0];
-	int day_second = 0;	if (values.find(TIME) == values.end() || values[TIME].size() != 1)
+	int hhmmss_time = 0;	if (values.find(TIME) == values.end() || values[TIME].size() != 1)
 	{
 		WLOG("XmlReaderValue::done(%s) -> NO time (or several) in the value", code.c_str());
 		return;
@@ -59,7 +59,7 @@ void XmlReaderValue::done()
 		int h, m;
 		if (sscanf(values[TIME][0].c_str(), "%d:%d", &h, &m) == 2)
 		{
-			day_second = ((h * 60) + m) * 60;
+			hhmmss_time = ((h * 100) + m) * 100;
 		}
 		else if (sscanf(values[TIME][0].c_str(), "%d/%d", &h, &m) != 2)
 		{
@@ -104,6 +104,6 @@ void XmlReaderValue::done()
 		capital = strtod(values[CAPITAL][0].c_str(), NULL);
 	}//TODO: insert registers in feeder_values and feeder_prices
 
-	DLOG("XmlReaderValue::done(%s) -> name='%s' price=%f volume=%f capital=%f time=%02d:%02d(sec %d)",
-	    code.c_str(), name.c_str(), price, volume, capital, day_second%3600, day_second%60, day_second);
+	DLOG("XmlReaderValue::done(%s) -> name='%s' price=%f volume=%f capital=%f time=%06d",
+	    code.c_str(), name.c_str(), price, volume, capital, hhmmss_time);
 }
