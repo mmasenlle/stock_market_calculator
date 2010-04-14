@@ -23,9 +23,9 @@ CREATE TABLE feeder_prices (
 CREATE TABLE statistics_of_day (
     value           varchar(16) REFERENCES feeder_values,
     date            date,
-    cnt_price       double precision,
-    cnt_volume      double precision,
-    cnt_capital     double precision,
+    cnt_price       integer,
+    cnt_volume      integer,
+    cnt_capital     integer,
     min_price       double precision,
     min_volume      double precision,
     min_capital     double precision,
@@ -44,9 +44,9 @@ CREATE TABLE statistics_of_day (
 CREATE TABLE statistics_of_month (
     value           varchar(16) REFERENCES feeder_values,
     date            date, -- day 1 of the month
-    cnt_price       double precision,
-    cnt_volume      double precision,
-    cnt_capital     double precision,
+    cnt_price       integer,
+    cnt_volume      integer,
+    cnt_capital     integer,
     min_price       double precision,
     min_volume      double precision,
     min_capital     double precision,
@@ -65,9 +65,9 @@ CREATE TABLE statistics_of_month (
 CREATE TABLE statistics_of_year (
     value           varchar(16) REFERENCES feeder_values,
     date            date, -- day 1 of january of the year
-    cnt_price       double precision,
-    cnt_volume      double precision,
-    cnt_capital     double precision,
+    cnt_price       integer,
+    cnt_volume      integer,
+    cnt_capital     integer,
     min_price       double precision,
     min_volume      double precision,
     min_capital     double precision,
@@ -82,5 +82,4 @@ CREATE TABLE statistics_of_year (
     std_capital     double precision,
     PRIMARY KEY (value, date)
 );
-
 
