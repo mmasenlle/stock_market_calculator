@@ -3,4 +3,9 @@
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 
+namespace utils
+{
+	int strtot(const char *iso8601);
+}
+
 #endif

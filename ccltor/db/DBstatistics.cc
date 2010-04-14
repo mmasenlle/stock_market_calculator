@@ -121,9 +121,9 @@ int DBstatistics::get_day(const char *value, int yyyymmdd,
 	int ret = 0;
 	char buffer[512];
 	snprintf(buffer, sizeof(buffer),
-			"SELECT (cnt_price, cnt_volume, cnt_capital, min_price, min_volume, min_capital, "
+			"SELECT cnt_price, cnt_volume, cnt_capital, min_price, min_volume, min_capital, "
 			"mean_price, mean_volume, mean_capital, max_price, max_volume, max_capital, "
-			"std_price, std_volume, std_capital) FROM statistics_of_day "
+			"std_price, std_volume, std_capital FROM statistics_of_day "
 			"WHERE value = '%s' AND date = '%08d';",
 			value, yyyymmdd);
 	PGresult *r = mdb->exec_sql(buffer);
@@ -181,9 +181,9 @@ int DBstatistics::get_month(const char *value, int yyyymmdd,
 	yyyymmdd = ((yyyymmdd / 100) * 100) + 1; //first day of the month
 	char buffer[512];
 	snprintf(buffer, sizeof(buffer),
-			"SELECT (cnt_price, cnt_volume, cnt_capital, min_price, min_volume, min_capital, "
+			"SELECT cnt_price, cnt_volume, cnt_capital, min_price, min_volume, min_capital, "
 			"mean_price, mean_volume, mean_capital, max_price, max_volume, max_capital, "
-			"std_price, std_volume, std_capital) FROM statistics_of_month "
+			"std_price, std_volume, std_capital FROM statistics_of_month "
 			"WHERE value = '%s' AND date = '%08d';",
 			value, yyyymmdd);
 	PGresult *r = mdb->exec_sql(buffer);
@@ -241,9 +241,9 @@ int DBstatistics::get_year(const char *value, int yyyymmdd,
 	yyyymmdd = ((yyyymmdd / 10000) * 10000) + 101; //first day of the year
 	char buffer[512];
 	snprintf(buffer, sizeof(buffer),
-			"SELECT (cnt_price, cnt_volume, cnt_capital, min_price, min_volume, min_capital, "
+			"SELECT cnt_price, cnt_volume, cnt_capital, min_price, min_volume, min_capital, "
 			"mean_price, mean_volume, mean_capital, max_price, max_volume, max_capital, "
-			"std_price, std_volume, std_capital) FROM statistics_of_year "
+			"std_price, std_volume, std_capital FROM statistics_of_year "
 			"WHERE value = '%s' AND date = '%08d';",
 			value, yyyymmdd);
 	PGresult *r = mdb->exec_sql(buffer);

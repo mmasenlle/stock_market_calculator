@@ -1,5 +1,6 @@
 
 #include <stdlib.h>
+#include "utils.h"
 #include "DBfeeder.h"
 
 DBfeeder::DBfeeder(CcltorDB *db) : mdb(db)
@@ -127,17 +128,17 @@ int DBfeeder::get_value_prices(const char *value,
 	if (hhmmss_end == 0)
 	{
 		snprintf(buffer, sizeof(buffer), "SELECT price, date, time FROM feeder_prices, "
-				"(SELECT date as gdate, min(time) as mtime FROM feeder_prices WHERE "
-				"(value = '%s' AND date >= '%08d' AND date <= '%08d') GROUP BY date) "
-				"WHERE (value = '%s' AND date = gdate AND time = mtime) ORDER BY date;",
+				"(SELECT date as mdate, min(time) as mtime FROM feeder_prices WHERE "
+				"(value = '%s' AND date >= '%08d' AND date <= '%08d') GROUP BY date) AS m "
+				"WHERE (value = '%s' AND date = mdate AND time = mtime) ORDER BY date;",
 				value, yyyymmdd_start, yyyymmdd_end, value);
 	}
 	else if (hhmmss_start == 240000)
 	{
 		snprintf(buffer, sizeof(buffer), "SELECT price, date, time FROM feeder_prices, "
-				"(SELECT date as gdate, max(time) as mtime FROM feeder_prices WHERE "
-				"(value = '%s' AND date >= '%08d' AND date <= '%08d') GROUP BY date) "
-				"WHERE (value = '%s' AND date = gdate AND time = mtime) ORDER BY date;",
+				"(SELECT date as mdate, max(time) as mtime FROM feeder_prices WHERE "
+				"(value = '%s' AND date >= '%08d' AND date <= '%08d') GROUP BY date) AS m "
+				"WHERE (value = '%s' AND date = mdate AND time = mtime) ORDER BY date;",
 				value, yyyymmdd_start, yyyymmdd_end, value);
 	}
 	else
@@ -187,12 +188,12 @@ int DBfeeder::get_value_prices(const char *value,
 			if (dates)
 			{
 				char *str = PQgetvalue(r, i, 1);
-				if (str) dates->push_back(strtol(str, NULL, 10));
+				if (str) dates->push_back(utils::strtot(str));
 			}
 			if (times)
 			{
 				char *str = PQgetvalue(r, i, 2);
-				if (str) times->push_back(strtol(str, NULL, 10));
+				if (str) times->push_back(utils::strtot(str));
 			}
 		}
 		PQclear(r);
@@ -209,17 +210,17 @@ int DBfeeder::get_value_volumes(const char *value,
 	if (hhmmss_end == 0)
 	{
 		snprintf(buffer, sizeof(buffer), "SELECT volume, date, time FROM feeder_prices, "
-				"(SELECT date as gdate, min(time) as mtime FROM feeder_prices WHERE "
-				"(value = '%s' AND date >= '%08d' AND date <= '%08d') GROUP BY date) "
-				"WHERE (value = '%s' AND date = gdate AND time = mtime) ORDER BY date;",
+				"(SELECT date as mdate, min(time) as mtime FROM feeder_prices WHERE "
+				"(value = '%s' AND date >= '%08d' AND date <= '%08d') GROUP BY date) AS m "
+				"WHERE (value = '%s' AND date = mdate AND time = mtime) ORDER BY date;",
 				value, yyyymmdd_start, yyyymmdd_end, value);
 	}
 	else if (hhmmss_start == 240000)
 	{
 		snprintf(buffer, sizeof(buffer), "SELECT volume, date, time FROM feeder_prices, "
-				"(SELECT date as gdate, max(time) as mtime FROM feeder_prices WHERE "
-				"(value = '%s' AND date >= '%08d' AND date <= '%08d') GROUP BY date) "
-				"WHERE (value = '%s' AND date = gdate AND time = mtime) ORDER BY date;",
+				"(SELECT date as mdate, max(time) as mtime FROM feeder_prices WHERE "
+				"(value = '%s' AND date >= '%08d' AND date <= '%08d') GROUP BY date) AS m "
+				"WHERE (value = '%s' AND date = mdate AND time = mtime) ORDER BY date;",
 				value, yyyymmdd_start, yyyymmdd_end, value);
 	}
 	else
@@ -246,12 +247,12 @@ int DBfeeder::get_value_volumes(const char *value,
 			if (dates)
 			{
 				char *str = PQgetvalue(r, i, 1);
-				if (str) dates->push_back(strtol(str, NULL, 10));
+				if (str) dates->push_back(utils::strtot(str));
 			}
 			if (times)
 			{
 				char *str = PQgetvalue(r, i, 2);
-				if (str) times->push_back(strtol(str, NULL, 10));
+				if (str) times->push_back(utils::strtot(str));
 			}
 		}
 		PQclear(r);
@@ -268,17 +269,17 @@ int DBfeeder::get_value_capitals(const char *value,
 	if (hhmmss_end == 0)
 	{
 		snprintf(buffer, sizeof(buffer), "SELECT capital, date, time FROM feeder_prices, "
-				"(SELECT date as gdate, min(time) as mtime FROM feeder_prices WHERE "
-				"(value = '%s' AND date >= '%08d' AND date <= '%08d') GROUP BY date) "
-				"WHERE (value = '%s' AND date = gdate AND time = mtime) ORDER BY date;",
+				"(SELECT date as mdate, min(time) as mtime FROM feeder_prices WHERE "
+				"(value = '%s' AND date >= '%08d' AND date <= '%08d') GROUP BY date) AS m "
+				"WHERE (value = '%s' AND date = mdate AND time = mtime) ORDER BY date;",
 				value, yyyymmdd_start, yyyymmdd_end, value);
 	}
 	else if (hhmmss_start == 240000)
 	{
 		snprintf(buffer, sizeof(buffer), "SELECT capital, date, time FROM feeder_prices, "
-				"(SELECT date as gdate, max(time) as mtime FROM feeder_prices WHERE "
-				"(value = '%s' AND date >= '%08d' AND date <= '%08d') GROUP BY date) "
-				"WHERE (value = '%s' AND date = gdate AND time = mtime) ORDER BY date;",
+				"(SELECT date as mdate, max(time) as mtime FROM feeder_prices WHERE "
+				"(value = '%s' AND date >= '%08d' AND date <= '%08d') GROUP BY date) AS m "
+				"WHERE (value = '%s' AND date = mdate AND time = mtime) ORDER BY date;",
 				value, yyyymmdd_start, yyyymmdd_end, value);
 	}
 	else
@@ -305,12 +306,12 @@ int DBfeeder::get_value_capitals(const char *value,
 			if (dates)
 			{
 				char *str = PQgetvalue(r, i, 1);
-				if (str) dates->push_back(strtol(str, NULL, 10));
+				if (str) dates->push_back(utils::strtot(str));
 			}
 			if (times)
 			{
 				char *str = PQgetvalue(r, i, 2);
-				if (str) times->push_back(strtol(str, NULL, 10));
+				if (str) times->push_back(utils::strtot(str));
 			}
 		}
 		PQclear(r);

@@ -25,8 +25,13 @@ int main(int argc, char *argv[])
 	ILOG("testDB-> sending feed r = %d - press enter to continue", r);
 	getchar();
 	
-	ILOG("testDB-> sending price PR2 PRUEBA 2 1.12, 2.22, 3.32, 83600");
-	r = dbfeeder.insert_price("PR2", "PRUEBA 2", 1.12, 2.22, 3.32, 83600);
+	ILOG("testDB-> sending price PR2 PRUEBA 2 1.412, 2.422, 3.432, 93600");
+	r = dbfeeder.insert_price("PR2", "PRUEBA 2", 1.412, 2.422, 3.432, 93600);
+	ILOG("testDB-> sending price r = %d - press enter to continue", r);
+	getchar();
+			
+	ILOG("testDB-> sending price PR2 PRUEBA 2 1.512, 2.522, 3.532, 124600");
+	r = dbfeeder.insert_price("PR2", "PRUEBA 2", 1.512, 2.522, 3.532, 124600);
 	ILOG("testDB-> sending price r = %d - press enter to continue", r);
 	getchar();
 	
@@ -47,6 +52,24 @@ int main(int argc, char *argv[])
 	ILOG("testDB-> get_value_prices(PR2, 20100101, 50000, 20110205, 220002, ...)");
 	std::vector<double> prices; std::vector<int> dates; std::vector<int> times;
 	r = dbfeeder.get_value_prices("PR2", 20100101, 50000, 20110205, 220002, &prices, &dates, &times);
+	for (int i = 0; i < prices.size(); i++) DLOG("testDB-> prices[%d] = %E", i, prices[i]);
+	for (int i = 0; i < dates.size(); i++) DLOG("testDB-> dates[%d] = %08d", i, dates[i]);
+	for (int i = 0; i < times.size(); i++) DLOG("testDB-> times[%d] = %06d", i, times[i]);
+	ILOG("testDB-> get_value_prices r = %d - press enter to continue", r);
+	getchar();
+			
+	ILOG("testDB-> get_value_prices(PR2, 20100101, 50000, 20110205, 0, ...) (first of day)");
+//	std::vector<double> prices; std::vector<int> dates; std::vector<int> times;
+	r = dbfeeder.get_value_prices("PR2", 20100101, 50000, 20110205, 0, &prices, &dates, &times);
+	for (int i = 0; i < prices.size(); i++) DLOG("testDB-> prices[%d] = %E", i, prices[i]);
+	for (int i = 0; i < dates.size(); i++) DLOG("testDB-> dates[%d] = %08d", i, dates[i]);
+	for (int i = 0; i < times.size(); i++) DLOG("testDB-> times[%d] = %06d", i, times[i]);
+	ILOG("testDB-> get_value_prices r = %d - press enter to continue", r);
+	getchar();
+			
+	ILOG("testDB-> get_value_prices(PR2, 20100101, 240000, 20110205, 101210, ...) (last of day)");
+//	std::vector<double> prices; std::vector<int> dates; std::vector<int> times;
+	r = dbfeeder.get_value_prices("PR2", 20100101, 240000, 20110205, 101210, &prices, &dates, &times);
 	for (int i = 0; i < prices.size(); i++) DLOG("testDB-> prices[%d] = %E", i, prices[i]);
 	for (int i = 0; i < dates.size(); i++) DLOG("testDB-> dates[%d] = %08d", i, dates[i]);
 	for (int i = 0; i < times.size(); i++) DLOG("testDB-> times[%d] = %06d", i, times[i]);
