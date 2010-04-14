@@ -4,8 +4,9 @@ CCLTOR_VERSION = 0.0.0
 SRC_ROOT ?= .
 INSTALL_DIR ?= ~/calculinator
 
-INCLUDE = -I$(SRC_ROOT)/lib -I$(SRC_ROOT)/ccltor -I/usr/include/libxml2
-LDFLAGS = $(SRC_ROOT)/lib/ccltor_lib.a $(SRC_ROOT)/ccltor/ccltor.a -lxml2
+INCLUDE = -I$(SRC_ROOT)/ccltor -I$(SRC_ROOT)/ccltor/db -I$(SRC_ROOT)/ccltor/ic \
+	  -I$(SRC_ROOT)/lib -I/usr/include/libxml2
+LDFLAGS = $(SRC_ROOT)/ccltor/ccltor.a $(SRC_ROOT)/lib/ccltor_lib.a -lxml2 -lpq
 
 CPPFLAGS =
 

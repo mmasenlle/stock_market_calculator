@@ -5,6 +5,9 @@
 #include <time.h>
 #include <poll.h>
 #include "logger.h"
+#include "ICEvent.h"
+#include "CcltorObservers.h"
+#include "DBfeeder.h"
 #include "FeederConfig.h"
 #include "XmlReaderData.h"
 
@@ -152,11 +155,26 @@ static void feed()
 	close(pd_parser[0]);
 }
 
+static CcltorObservers ccltorObservers;
+
+char feeder_id[256];
+static CcltorDB ccltorDB;
+DBfeeder dbfeeder(&ccltorDB);
+
 int main(int argc, char *argv[])
 {
     FeederConfig::init(argc, argv);
 	signal(SIGCHLD, sigchld_handler);
 
+	CcltorIC ccltorIC;
+	if (ccltorIC.init(FeederConfig::feederConfig.ic_port) == -1)
+	{
+		SELOG("feeder:main() -> ccltorIC.init(%d)", FeederConfig::feederConfig.ic_port);
+	}
+	snprintf(feeder_id, sizeof(feeder_id), "feeder:%d@%s", getpid(), getenv("HOSTNAME") ?: "");
+	ccltorDB.connect(FeederConfig::feederConfig.db_conninfo.c_str());
+
+	ICEvent newfeed(ICEVENT_FEEDER_NEWFEED);
     struct timeval last_feed = { 0 };
     for (;;)
     {
@@ -199,7 +217,7 @@ int main(int argc, char *argv[])
 			SELOG("feeder:main() -> gettimeofday(last_feed)");
 		}
         feed();
-		
-        //TODO: notify ?
+
+		ccltorObservers.notify(&ccltorIC, &newfeed);
     }
 }

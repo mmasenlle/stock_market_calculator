@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "utils.h"
 #include "logger.h"
+#include "feeder.h"
 #include "XmlReaderValue.h"
 
 #define CAPITAL		"capital"
@@ -102,8 +103,8 @@ void XmlReaderValue::done()
 	else
 	{
 		capital = strtod(values[CAPITAL][0].c_str(), NULL);
-	}//TODO: insert registers in feeder_values and feeder_prices
+	}
 
-	DLOG("XmlReaderValue::done(%s) -> name='%s' price=%f volume=%f capital=%f time=%06d",
+	dbfeeder.insert_price(code.c_str(), name.c_str(), price, volume, capital, hhmmss_time);	DLOG("XmlReaderValue::done(%s) -> name='%s' price=%f volume=%f capital=%f time=%06d",
 	    code.c_str(), name.c_str(), price, volume, capital, hhmmss_time);
 }

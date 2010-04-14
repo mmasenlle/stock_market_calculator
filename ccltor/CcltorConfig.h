@@ -17,6 +17,7 @@ public:
 	int ic_port;
     int log_level;
 
+	std::string db_conninfo;
     std::string cfg_fname;
     std::string log_fname;
 };

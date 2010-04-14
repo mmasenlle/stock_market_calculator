@@ -6,9 +6,11 @@
 #define CCLTOR_CONF_FNAME "ccltor.xml"
 
 #define IC_PORT_KEY		"/ic_port"
+#define DB_CONNINFO_KEY	"/db_conninfo"
 #define LOG_FNAME_KEY 	"/log_fname"
 #define LOG_LEVEL_KEY 	"/log_level"
 
+#define CCLTOR_DB_CONNINFO_KEY "/ccltor" DB_CONNINFO_KEY
 #define CCLTOR_LOG_LEVEL_KEY "/ccltor" LOG_LEVEL_KEY
 
 #define CCLTOR_LOG_LEVEL_ENV "CCLTOR_LOG_LEVEL"
@@ -17,6 +19,7 @@ CcltorConfig::CcltorConfig()
 {
 	ic_port = 17000;
 	log_level = 2;
+	db_conninfo = "user=ccltor dbname=calculinator";
 }
 
 void CcltorConfig::init_pre(CcltorConfig *cfg, int argc, char *argv[])
@@ -26,6 +29,7 @@ void CcltorConfig::init_pre(CcltorConfig *cfg, int argc, char *argv[])
 
     std::string xp_value;
     XPathConfig xpconf(CCLTOR_CONF_FNAME);
+	xpconf.getValue(CCLTOR_DB_CONNINFO_KEY, &cfg->db_conninfo);
     if (xpconf.getValue(CCLTOR_LOG_LEVEL_KEY, &xp_value))
         cfg->log_level = atoi(xp_value.c_str());
 
@@ -69,6 +73,7 @@ void CcltorConfig::init_post(CcltorConfig *cfg, const XPathConfig &xpc,
         cfg->ic_port = atoi(xp_value.c_str());
     if (xpc.getValue((skey + LOG_LEVEL_KEY).c_str(), &xp_value))
         cfg->log_level = atoi(xp_value.c_str());
+	xpc.getValue((skey + DB_CONNINFO_KEY).c_str(), &cfg->db_conninfo);
     xpc.getValue((skey + LOG_FNAME_KEY).c_str(), &cfg->log_fname);
 
     FOR_OPT_ARG(argc, argv)
