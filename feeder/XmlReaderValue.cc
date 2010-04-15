@@ -62,9 +62,16 @@ void XmlReaderValue::done()
 		{
 			hhmmss_time = ((h * 100) + m) * 100;
 		}
-		else if (sscanf(values[TIME][0].c_str(), "%d/%d", &h, &m) != 2)
+		else
 		{
-			WLOG("XmlReaderValue::done(%s) -> time format '%s' not understood", code.c_str(), values[TIME][0].c_str());
+			if (sscanf(values[TIME][0].c_str(), "%d/%d", &h, &m) == 2)
+			{
+				DLOG("XmlReaderValue::done(%s) -> '%s' not today's value", code.c_str(), values[TIME][0].c_str());
+			}
+			else
+			{
+				WLOG("XmlReaderValue::done(%s) -> time format '%s' not understood", code.c_str(), values[TIME][0].c_str());
+			}
 			return;
 		}
 	}
