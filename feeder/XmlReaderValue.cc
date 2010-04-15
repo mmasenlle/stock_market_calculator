@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "utils.h"
 #include "logger.h"
-#include "feeder.h"
+#include "Feeder.h"
 #include "XmlReaderValue.h"
 
 #define CAPITAL		"capital"
@@ -105,6 +105,6 @@ void XmlReaderValue::done()
 		capital = strtod(values[CAPITAL][0].c_str(), NULL);
 	}
 
-	dbfeeder.insert_price(code.c_str(), name.c_str(), price, volume, capital, hhmmss_time);	DLOG("XmlReaderValue::done(%s) -> name='%s' price=%f volume=%f capital=%f time=%06d",
+	Feeder::feeder.dbfeeder.insert_price(code.c_str(), name.c_str(), price, volume, capital, hhmmss_time);	DLOG("XmlReaderValue::done(%s) -> name='%s' price=%f volume=%f capital=%f time=%06d",
 	    code.c_str(), name.c_str(), price, volume, capital, hhmmss_time);
 }

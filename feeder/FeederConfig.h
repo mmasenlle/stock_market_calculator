@@ -5,7 +5,6 @@
 
 class FeederConfig : public CcltorConfig
 {
-    FeederConfig();
     void print_help();
 
 public:
@@ -15,8 +14,8 @@ public:
     std::string url;
     std::string parser;
 
-    static void init(int argc, char *argv[]);
-    static FeederConfig feederConfig;
+    FeederConfig();
+    void init(int argc, char *argv[]);
 };
 
 #endif

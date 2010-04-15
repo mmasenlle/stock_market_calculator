@@ -7,9 +7,9 @@ class XmlReaderData : public XmlReader
 {
 	const char * match_value(int hint);
 	XmlReader * match_tree(int hint);
-	void done();
 public:
 	XmlReaderData();
+	int get_count();
 };
 
 #endif /*_XMLREADERDATA_H_*/

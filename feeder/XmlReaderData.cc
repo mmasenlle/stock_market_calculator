@@ -1,6 +1,5 @@
 
 #include "logger.h"
-#include "feeder.h"
 #include "XmlReaderValue.h"
 #include "XmlReaderData.h"
 
@@ -21,15 +20,6 @@ XmlReader * XmlReaderData::match_tree(int hint)
 	return NULL;
 }
 
-void XmlReaderData::done()
-{	if (trees.find(VALUE_ROOT_LABEL) == trees.end())
-	{
-		dbfeeder.insert_feed(feeder_id, 0);
-		WLOG("XmlReaderData::done() -> NO values processed at this feed");
-	}
-	else
-	{
-		dbfeeder.insert_feed(feeder_id, trees[VALUE_ROOT_LABEL].size());
-		ILOG("XmlReaderData::done() -> %d values processed at this feed", trees[VALUE_ROOT_LABEL].size());
-	}
-}
+int XmlReaderData::get_count()
+{
+	return (trees.find(VALUE_ROOT_LABEL) == trees.end()) ? 0 : trees[VALUE_ROOT_LABEL].size();}
