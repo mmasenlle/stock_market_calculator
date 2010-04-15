@@ -48,3 +48,18 @@ MsgRegister, Raw, etc, will be binded in classes.
 For the db access, the classes to isolate the DBMS will be in the ccltor/db
 folder.
 
+
+Thu Apr 15 23:14:35 CEST 2010
+ Validate feeder
+-----------------
+ -Debug and fix the corner cases of the program
+ -Do a good test in production
+
+
+Thu Apr 15 23:19:39 CEST 2010
+ Chart I
+---------
+ -Do a program to draw simple charts
+  +Read simple options (value, day, ...)
+  +Get the date for price from db
+  +Print the points
