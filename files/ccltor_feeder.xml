@@ -1,5 +1,5 @@
 <!-- ccltor_feeder configuration file example -->
-<feeder>
+<ccltor_feeder>
     <url>http://host:port/path.html</url>
     <parser>parser1.pl</parser>
     <sdelay>120</sdelay>
@@ -9,5 +9,5 @@
     <ic_port>17100</ic_port>
     <log_level>5</log_level>
     <log_fname>_</log_fname>
-</feeder>
+</ccltor_feeder>
 

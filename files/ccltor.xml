@@ -1,5 +1,6 @@
 <!-- ccltor.xml configuration file example -->
 <ccltor>
+    <db_conninfo>user=ccltor dbname=calculinator</db_conninfo>
     <log_level>5</log_level>
 </ccltor>
 
