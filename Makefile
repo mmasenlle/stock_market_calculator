@@ -1,7 +1,7 @@
 
 include flags.mk
 
-install_dirs = feeder
+install_dirs = feeder graphic/chart
 
 build_dirs = lib ccltor $(install_dirs)
 
