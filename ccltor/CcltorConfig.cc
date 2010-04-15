@@ -22,19 +22,19 @@ CcltorConfig::CcltorConfig()
 	db_conninfo = "user=ccltor dbname=calculinator";
 }
 
-void CcltorConfig::init_pre(CcltorConfig *cfg, int argc, char *argv[])
+void CcltorConfig::init_pre(int argc, char *argv[])
 {
-    cfg->cfg_fname = argv[0]; cfg->cfg_fname += ".xml";
-    cfg->log_fname = argv[0]; cfg->log_fname += ".log";
+    cfg_fname = argv[0]; cfg_fname += ".xml";
+    log_fname = argv[0]; log_fname += ".log";
 
     std::string xp_value;
     XPathConfig xpconf(CCLTOR_CONF_FNAME);
-	xpconf.getValue(CCLTOR_DB_CONNINFO_KEY, &cfg->db_conninfo);
+	xpconf.getValue(CCLTOR_DB_CONNINFO_KEY, &db_conninfo);
     if (xpconf.getValue(CCLTOR_LOG_LEVEL_KEY, &xp_value))
-        cfg->log_level = atoi(xp_value.c_str());
+        log_level = atoi(xp_value.c_str());
 
     if (getenv(CCLTOR_LOG_LEVEL_ENV))
-        cfg->log_level = atoi(getenv(CCLTOR_LOG_LEVEL_ENV));
+        log_level = atoi(getenv(CCLTOR_LOG_LEVEL_ENV));
 
     FOR_OPT(argc, argv)
     {
@@ -49,7 +49,8 @@ void CcltorConfig::init_pre(CcltorConfig *cfg, int argc, char *argv[])
 	fflush(stdout);
         exit(0);
     case 'h':
-        cfg->print_help();
+        print_help();
+        fprintf(stdout, "  -c <conninfo>   DB connection data\n");
         fprintf(stdout, "  -f <file>       Configuration file\n");
         fprintf(stdout, "  -l <file>       Logger file\n");
         fprintf(stdout, "  -v              Print version and exit\n");
@@ -60,33 +61,33 @@ void CcltorConfig::init_pre(CcltorConfig *cfg, int argc, char *argv[])
     END_OPT;
     FOR_OPT_ARG(argc, argv)
     {
-    case 'f': cfg->cfg_fname = arg; break;
+    case 'f': cfg_fname = arg; break;
     }
     END_OPT;
 }
 
-void CcltorConfig::init_post(CcltorConfig *cfg, const XPathConfig &xpc,
-    const char *key, int argc, char *argv[])
+void CcltorConfig::init_post(const XPathConfig &xpc, const char *key, int argc, char *argv[])
 {
     std::string xp_value, skey = key;
 	if (xpc.getValue((skey + IC_PORT_KEY).c_str(), &xp_value))
-        cfg->ic_port = atoi(xp_value.c_str());
+        ic_port = atoi(xp_value.c_str());
     if (xpc.getValue((skey + LOG_LEVEL_KEY).c_str(), &xp_value))
-        cfg->log_level = atoi(xp_value.c_str());
-	xpc.getValue((skey + DB_CONNINFO_KEY).c_str(), &cfg->db_conninfo);
-    xpc.getValue((skey + LOG_FNAME_KEY).c_str(), &cfg->log_fname);
+        log_level = atoi(xp_value.c_str());
+	xpc.getValue((skey + DB_CONNINFO_KEY).c_str(), &db_conninfo);
+    xpc.getValue((skey + LOG_FNAME_KEY).c_str(), &log_fname);
 
     FOR_OPT_ARG(argc, argv)
     {
-    case 'l': cfg->log_fname = arg; break;
+    case 'c': db_conninfo = arg; break;
+    case 'l': log_fname = arg; break;
     }
     END_OPT;
 
-    if (cfg->log_level >= 0 && cfg->log_fname.length())
+    if (log_level >= 0 && log_fname.length())
     {
         INIT_DEFAULT_LOGGER(
-            cfg->log_fname[0] == '_' ? NULL : cfg->log_fname.c_str(),
-            cfg->log_level);
+            log_fname[0] == '_' ? NULL : log_fname.c_str(),
+            log_level);
     }
 }
 

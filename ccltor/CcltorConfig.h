@@ -8,9 +8,8 @@ class CcltorConfig
 {
 protected:
 	CcltorConfig();
-    static void init_pre(CcltorConfig *cfg, int argc, char *argv[]);
-    static void init_post(CcltorConfig *cfg, const XPathConfig &xpc,
-        const char *key, int argc, char *argv[]);
+    void init_pre(int argc, char *argv[]);
+    void init_post(const XPathConfig &xpc, const char *key, int argc, char *argv[]);
     virtual void print_help() = 0;
 
 public:
