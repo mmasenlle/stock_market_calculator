@@ -14,8 +14,8 @@ public:
 	bool operator<(const ICPeer &peer) const;
 	void clear();
 	int set(const char *host, int port);
-	unsigned long get_ip();
-	int get_port();
+	unsigned long get_ip() const;
+	int get_port() const;
 };
 
 #endif

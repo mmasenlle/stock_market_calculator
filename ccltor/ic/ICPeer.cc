@@ -41,12 +41,12 @@ int ICPeer::set(const char *host, int port)
 	return ret;
 }
 
-unsigned long ICPeer::get_ip()
+unsigned long ICPeer::get_ip() const
 {
 	return ntohl(saddr_in.sin_addr.s_addr);
 }
 
-int ICPeer::get_port()
+int ICPeer::get_port() const
 {
 	return ntohs(saddr_in.sin_port);
 }

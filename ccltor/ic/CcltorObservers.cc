@@ -2,9 +2,9 @@
 #include "logger.h"
 #include "CcltorObservers.h"
 
-void CcltorObservers::add(const ICPeer *observer, int seconds)
+void CcltorObservers::add(const ICPeer *observer, const ICRegistration *reg)
 {
-	observers[*observer] = seconds > 0 ? (time(NULL) + seconds) : 0;
+	observers[*observer] = reg->getSeconds() > 0 ? (time(NULL) + reg->getSeconds()) : 0;
 }
 
 void CcltorObservers::notify(const CcltorIC *ic, const ICMsg *msg)
@@ -21,7 +21,8 @@ void CcltorObservers::notify(const CcltorIC *ic, const ICMsg *msg)
 		}
 		else if (msg->send(ic, &safe->first) < 0)
 		{
-			SELOG("CcltorICObservers::notify() -> sending");
+			SELOG("CcltorICObservers::notify() -> sending to 0x%08x:%d",
+					safe->first.get_ip(), safe->first.get_port());
 		}
 	}
 }

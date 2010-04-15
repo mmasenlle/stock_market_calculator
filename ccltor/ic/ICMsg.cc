@@ -1,5 +1,5 @@
 
-#include "ICMsgRegister.h"
+#include "ICRegistration.h"
 #include "ICEvent.h"
 #include "ICMsgRaw.h"
 #include "ICPeer.h"
@@ -19,9 +19,9 @@ ICMsg *ICMsg::create(const char *msg, int len)
 		int msg_class = ntohl(*(uint32_t*)msg);
 		switch (msg_class)
 		{
-		case ICMSGCLASS_RAW:		return new ICMsgRaw(msg, len);
-		case ICMSGCLASS_EVENT:		return ICEvent::create(msg, len);
-		case ICMSGCLASS_REGISTER:	return ICMsgRegister::create(msg, len);
+		case ICMSGCLASS_RAW:			return new ICMsgRaw(msg, len);
+		case ICMSGCLASS_EVENT:			return ICEvent::create(msg, len);
+		case ICMSGCLASS_REGISTRATION:	return ICRegistration::create(msg, len);
 		}
 	}
 	return NULL;
