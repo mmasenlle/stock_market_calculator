@@ -2,7 +2,14 @@
 
 # ccltor parser for the url << http://app2.expansion.com/bolsa/cotizaciones/Ficha?cod=I.MA >>
 
-sub put_col
+sub put_str
+{
+    $str = $_[0];
+    $str =~ s/'/\\'/g;
+    print "<$_[1]>$str</$_[1]>";
+}
+
+sub put_num
 {
     $num = $_[0];
     $num =~ s/\.//g;
@@ -33,14 +40,16 @@ foreach $_ (<STDIN>)
             {
                 print "</value>\n";
             }
-            print "<value><code>$1</code><name>$2</name>";
+            print "<value>";
+            &put_str($1, "code");
+            &put_str($2, "name");
             $state = 2;
         }
         elsif (/$col_pattern/)
         {
             if ($state == 2) # price
             {
-                &put_col($1, "price");
+                &put_num($1, "price");
                 $state++;
             }
             elsif ($state == 3) { $state++; } # diffp
@@ -49,12 +58,12 @@ foreach $_ (<STDIN>)
             elsif ($state == 6) { $state++; } # min
             elsif ($state == 7) # volume
             {
-                &put_col($1, "volume");
+                &put_num($1, "volume");
                 $state++;
             }
             elsif ($state == 8) # capital
             {
-                &put_col($1, "capital");
+                &put_num($1, "capital");
                 $state++;
             }
             elsif ($state == 9) # time
