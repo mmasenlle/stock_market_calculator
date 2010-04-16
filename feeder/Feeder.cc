@@ -147,7 +147,15 @@ int Feeder::feed()
 
 void Feeder::init()
 {
-	snprintf(id_str, sizeof(id_str), "feeder:%d@%s", getpid(), getenv("HOSTNAME") ?: "unknown");
+	int r = snprintf(id_str, sizeof(id_str), "feeder:%d@", getpid());
+	if (gethostname(id_str + r, sizeof(id_str) - r) < 0)
+	{
+		SELOG("Feeder::init() -> gethostname()");
+	}
+	if ((r = utils::nohup()) < 0)
+	{
+		SELOG("Feeder::init() -> utils::nohup(): %d", r);
+	}
 	if (signal(SIGCHLD, sigchld_handler) == SIG_ERR)
 	{
 		SELOG("Feeder::init() -> signal(SIGCHLD, sigchld_handler) == SIG_ERR");

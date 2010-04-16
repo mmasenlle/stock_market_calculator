@@ -34,6 +34,8 @@ void CcltorDB::release()
 	}
 }
 
+#define UNIQUE_VIOLATION "23505"
+
 PGresult *CcltorDB::exec_sql(const char *sql)
 {
 	if (conn)
@@ -46,13 +48,24 @@ PGresult *CcltorDB::exec_sql(const char *sql)
 		else
 		{
 			ExecStatusType status = PQresultStatus(result);
-			DLOG("CcltorDB::exec_sql(%s) -> status: %d-'%s'", sql, status, PQresStatus(status));
-			char *errtext = PQresultErrorMessage(result);
-			if (errtext && *errtext)
+			DLOG("CcltorDB::exec_sql(%s) -> status: %d-%s", sql, status, PQresStatus(status));
+			if (status != PGRES_COMMAND_OK && status != PGRES_TUPLES_OK)
 			{
-				ELOG("CcltorDB::exec_sql(%s) -> status: %d, error: '%s'", sql, status, errtext);
-				PQclear(result);
-				result = NULL;
+				char *errtext = PQresultErrorMessage(result);
+				char *sqlstate = PQresultErrorField(result, PG_DIAG_SQLSTATE);
+				if (errtext || sqlstate)
+				{
+					if (sqlstate && (strcmp(sqlstate, UNIQUE_VIOLATION) == 0))
+					{
+						DLOG("CcltorDB::exec_sql(%s) -> [%d-%s] %s", sql, status, sqlstate ?:"", errtext ?:"");
+					}
+					else
+					{
+						ELOG("CcltorDB::exec_sql(%s) -> [%d-%s] %s", sql, status, sqlstate ?:"", errtext ?:"");
+					}
+					PQclear(result);
+					result = NULL;
+				}
 			}
 		}
 		return result;

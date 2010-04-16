@@ -6,6 +6,7 @@
 namespace utils
 {
 	int strtot(const char *iso8601);
+	int nohup();
 }
 
 #endif

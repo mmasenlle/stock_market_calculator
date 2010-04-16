@@ -33,9 +33,6 @@ void CcltorConfig::init_pre(int argc, char *argv[])
     if (xpconf.getValue(CCLTOR_LOG_LEVEL_KEY, &xp_value))
         log_level = atoi(xp_value.c_str());
 
-    if (getenv(CCLTOR_LOG_LEVEL_ENV))
-        log_level = atoi(getenv(CCLTOR_LOG_LEVEL_ENV));
-
     FOR_OPT(argc, argv)
     {
     case 'v':
@@ -75,6 +72,9 @@ void CcltorConfig::init_post(const XPathConfig &xpc, const char *key, int argc, 
         log_level = atoi(xp_value.c_str());
 	xpc.getValue((skey + DB_CONNINFO_KEY).c_str(), &db_conninfo);
     xpc.getValue((skey + LOG_FNAME_KEY).c_str(), &log_fname);
+
+    if (getenv(CCLTOR_LOG_LEVEL_ENV))
+        log_level = atoi(getenv(CCLTOR_LOG_LEVEL_ENV));
 
     FOR_OPT_ARG(argc, argv)
     {
