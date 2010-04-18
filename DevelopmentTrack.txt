@@ -63,3 +63,13 @@ Thu Apr 15 23:19:39 CEST 2010
   +Read simple options (value, day, ...)
   +Get the date for price from db
   +Print the points
+
+
+Sun Apr 18 22:37:00 CEST 2010
+ Running control I
+------------------
+ -Start a program to send messages to processes
+  +First configuration (peers, event numbers)
+  +Send and finish
+
+
