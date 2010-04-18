@@ -22,14 +22,42 @@ void Chart::init()
 
 void Chart::get_normalized_points(std::vector<std::pair<float, float> > *points)
 {
-	points->clear();
-//TODO: get data from db
+//TODO: get data from db taking care of config
+	std::vector<double> prices; std::vector<int> dates; std::vector<int> times;
+	int r = dbfeeder.get_value_prices(config.value.c_str(),
+	    config.day_start, config.time_start, config.day_end, config.time_end,
+	    &prices, &dates, &times);
+	DLOG("Chart::get_normalized_points() -> dbfeeder.get_value_prices: %d", r);
 //TODO: maybe do some truncating on the data
-	for (int i = 0; i < 100; i++)
+	double max_price = 0.0;
+	double min_price = 1e100;
+	for (int i = 0; i < prices.size(); i++)
+	{
+		if (prices[i] > max_price) max_price = prices[i];
+		if (prices[i] < min_price) min_price = prices[i];
+	}
+	max_price -= min_price;
+	if (min_price > max_price)
+	{
+//		min_price -= max_price;
+//		max_price *= 2.0;
+	}
+	int max_time = 1, min_time = 0;
+	if (times.size())
+	{
+		min_time = times[0];
+		max_time = times[times.size() - 1] - min_time;
+	}
+	points->clear();
+	DLOG("Chart::get_normalized_points() -> max_price: %E", max_price);
+	for (int i = 0; i < prices.size(); i++)
 	{
 //TODO: normalize each point
 		points->push_back(std::make_pair<float, float>
-		    (((float)random() / RAND_MAX),((float)random() / RAND_MAX)));
+		    ((((float)times[i] - min_time) / max_time), (prices[i] - min_price) / max_price));
+//		    ((float)i / prices.size(), (prices[i] - min_price) / max_price));
+//		points->push_back(std::make_pair<float, float>
+//		    (((float)random() / RAND_MAX),((float)random() / RAND_MAX)));
 	}
 }
 
@@ -51,13 +79,20 @@ void Chart::display()
 	std::vector<std::pair<float, float> > points;
 	chart.get_normalized_points(&points);
 	glColor3f(.0, 1.0, .0);
-	for (int i = 0; i < points.size(); i++)
+/*	for (int i = 0; i < points.size(); i++)
 	{
 		glPushMatrix();
 		glTranslated(points[i].first, points[i].second, .0);
 		glutSolidSphere(.003, 10, 8);
 		glPopMatrix();
 	}
+*/
+	glBegin(GL_LINE_STRIP);
+	for (int i = 0; i < points.size(); i++)
+	{
+		glVertex3f(points[i].first, points[i].second, .0);
+	}
+	glEnd();
 	
 	glutSwapBuffers();
 }
