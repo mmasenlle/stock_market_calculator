@@ -63,6 +63,9 @@ Thu Apr 15 23:19:39 CEST 2010
   +Read simple options (value, day, ...)
   +Get the date for price from db
   +Print the points
+Comments:
+Working, but is done in opengl and is a bit poor in text information. For the
+next iteration on charts, better use a specific library (i.e. gnuplot).
 
 
 Sun Apr 18 22:37:00 CEST 2010
