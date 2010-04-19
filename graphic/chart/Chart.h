@@ -11,8 +11,15 @@ class Chart
 	CcltorDB db;
 	DBfeeder dbfeeder;
 	DBstatistics dbstatistics;
-
-	void get_normalized_points(std::vector<std::pair<float, float> > *points);
+	
+	float min_x, max_x, min_y, max_y;
+	std::vector<std::pair<float, float> > points;
+	void clear();
+	void add_point(float x, float y);
+	void normalize();
+	float to_sec(int time);
+	float to_day(int date);
+	void get_points();
 	
 	static void display();
 	static void reshape(int w, int h);

@@ -2,6 +2,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
+#include <float.h>
 #include "logger.h"
 #include "Chart.h"
 
@@ -9,7 +10,7 @@ Chart Chart::chart;
 
 Chart::Chart() : dbfeeder(&db), dbstatistics(&db)
 {
-	
+	clear();
 }
 
 void Chart::init()
@@ -20,45 +21,129 @@ void Chart::init()
 	}
 }
 
-void Chart::get_normalized_points(std::vector<std::pair<float, float> > *points)
+void Chart::clear()
 {
-//TODO: get data from db taking care of config
-	std::vector<double> prices; std::vector<int> dates; std::vector<int> times;
-	int r = dbfeeder.get_value_prices(config.value.c_str(),
-	    config.day_start, config.time_start, config.day_end, config.time_end,
-	    &prices, &dates, &times);
-	DLOG("Chart::get_normalized_points() -> dbfeeder.get_value_prices: %d", r);
-//TODO: maybe do some truncating on the data
-	double max_price = 0.0;
-	double min_price = 1e100;
-	for (int i = 0; i < prices.size(); i++)
+	min_x = min_y = FLT_MAX;
+	max_x = max_y = FLT_MIN;
+	points.clear();
+}
+
+void Chart::add_point(float x, float y)
+{
+	if (x < min_x) min_x = x;
+	if (x > max_x) max_x = x;
+	if (y < min_y) min_y = y;
+	if (y > max_y) max_y = y;
+
+	points.push_back(std::make_pair<float, float>(x, y));
+}
+
+void Chart::normalize()
+{
+	ILOG("Chart::normalize() -> time range: %f - %f", min_x, max_x);
+	ILOG("Chart::normalize() -> value range: %f - %f", min_y, max_y);
+	max_x -= min_x;
+	max_y -= min_y;
+	for (int i = 0; i < points.size(); i++)
 	{
-		if (prices[i] > max_price) max_price = prices[i];
-		if (prices[i] < min_price) min_price = prices[i];
+		points[i].first = (points[i].first - min_x) / max_x;
+		points[i].second = (points[i].second - min_y) / max_y;
 	}
-	max_price -= min_price;
-	if (min_price > max_price)
+}
+
+float Chart::to_sec(int time)
+{
+	return ((((time / 10000) * 60) + ((time % 10000) / 100)) * 60) + (time % 100); 
+}
+
+float Chart::to_day(int date)
+{
+	return ((((date / 10000) * 12) + ((date % 10000) / 100)) * 30) + (date % 100);
+}
+
+void Chart::get_points()
+{
+	int r = -1;
+	std::vector<double> raw_data;
+	std::vector<int> raw_dates, raw_times;
+	switch (config.item)
 	{
-//		min_price -= max_price;
-//		max_price *= 2.0;
+	case CHARTITEM_PRICE:
+		r = dbfeeder.get_value_prices(config.value.c_str(),
+				config.day_start, config.time_start, config.day_end, config.time_end,
+			    &raw_data, &raw_dates, &raw_times);
+		break;
+	case CHARTITEM_VOLUME:
+		r = dbfeeder.get_value_volumes(config.value.c_str(),
+			    config.day_start, config.time_start, config.day_end, config.time_end,
+			    &raw_data, &raw_dates, &raw_times);
+		break;
+	case CHARTITEM_CAPITAL:
+		r = dbfeeder.get_value_capitals(config.value.c_str(),
+			    config.day_start, config.time_start, config.day_end, config.time_end,
+			    &raw_data, &raw_dates, &raw_times);
+		break;
 	}
-	int max_time = 1, min_time = 0;
-	if (times.size())
+	
+	if (raw_data.size())
 	{
-		min_time = times[0];
-		max_time = times[times.size() - 1] - min_time;
+		float acum_y = (config.item == CHARTTYPE_MEAN) ? 0.0 : raw_data[0];
+		int current_date = raw_dates[0];
+		int cnt = 0, acum_x = 0;
+		for (int i = 0; i < raw_data.size(); i++)
+		{
+			if (raw_dates[i] > current_date)
+			{
+				switch (config.type)
+				{
+				case CHARTTYPE_CLOSE:
+				case CHARTTYPE_MIN:
+				case CHARTTYPE_MAX:
+					add_point(to_day(current_date), acum_y);
+					acum_y = raw_data[i];
+					break;
+				case CHARTTYPE_MEAN:
+					add_point(to_day(current_date), acum_y / cnt);
+					acum_y = 0.0;
+					cnt = 0;
+					break;
+				}
+				acum_x += (24 * 3600);
+				current_date = raw_dates[i];
+			}
+			switch (config.type)
+			{
+			case CHARTTYPE_ALL:
+				add_point(acum_x + to_sec(raw_times[i]), raw_data[i]);
+				break;
+			case CHARTTYPE_CLOSE:
+				acum_y = raw_data[i];
+				break;
+			case CHARTTYPE_MIN:
+				if (acum_y > raw_data[i]) acum_y = raw_data[i];
+				break;
+			case CHARTTYPE_MEAN:
+				acum_y += raw_data[i];
+				cnt++;
+				break;
+			case CHARTTYPE_MAX:
+				if (acum_y < raw_data[i]) acum_y = raw_data[i];
+				break;
+			}
+		}
+		switch (config.type)
+		{
+		case CHARTTYPE_CLOSE:
+		case CHARTTYPE_MIN:
+		case CHARTTYPE_MAX:
+			add_point(to_day(current_date), acum_y);
+			break;
+		case CHARTTYPE_MEAN:
+			if (cnt) add_point(to_day(current_date), acum_y / cnt);
+			break;
+		}
 	}
-	points->clear();
-	DLOG("Chart::get_normalized_points() -> max_price: %E", max_price);
-	for (int i = 0; i < prices.size(); i++)
-	{
-//TODO: normalize each point
-		points->push_back(std::make_pair<float, float>
-		    ((((float)times[i] - min_time) / max_time), (prices[i] - min_price) / max_price));
-//		    ((float)i / prices.size(), (prices[i] - min_price) / max_price));
-//		points->push_back(std::make_pair<float, float>
-//		    (((float)random() / RAND_MAX),((float)random() / RAND_MAX)));
-	}
+	DLOG("Chart::get_points() -> r: %d raw: %d points: %d", r, raw_data.size(), points.size());
 }
 
 void Chart::display()
@@ -76,21 +161,15 @@ void Chart::display()
 //	glVertex3f (0.0, 0.0, 1.1);
 	glEnd();
 
-	std::vector<std::pair<float, float> > points;
-	chart.get_normalized_points(&points);
+	chart.clear();
+	chart.get_points();
+	chart.normalize();
+
 	glColor3f(.0, 1.0, .0);
-/*	for (int i = 0; i < points.size(); i++)
-	{
-		glPushMatrix();
-		glTranslated(points[i].first, points[i].second, .0);
-		glutSolidSphere(.003, 10, 8);
-		glPopMatrix();
-	}
-*/
 	glBegin(GL_LINE_STRIP);
-	for (int i = 0; i < points.size(); i++)
+	for (int i = 0; i < chart.points.size(); i++)
 	{
-		glVertex3f(points[i].first, points[i].second, .0);
+		glVertex3f(chart.points[i].first, chart.points[i].second, .0);
 	}
 	glEnd();
 	

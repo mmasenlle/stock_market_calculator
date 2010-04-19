@@ -3,7 +3,7 @@
 #include "logger.h"
 #include "ChartConfig.h"
 
-static const char *chart_types[] = { "normal", "min", "mean", "max", NULL };
+static const char *chart_types[] = { "all", "close", "min", "mean", "max", NULL };
 void ChartConfig::setType(const char *stype)
 {
 	for (int i = 0; chart_types[i]; i++)
@@ -39,10 +39,12 @@ const char *ChartConfig::getItem()
 
 ChartConfig::ChartConfig()
 {
-	type = CHARTTYPE_NORMAL;
+	type = CHARTTYPE_ALL;
 	item = CHARTITEM_PRICE;
-	day_start = time_start = -1;
-	day_end = time_end = -1;
+	day_start = 0;
+	time_start = 0;
+	day_end = 20500101;
+	time_end = 235959;
     ic_port = 17200;
 }
 
@@ -80,6 +82,14 @@ void ChartConfig::init(int argc, char *argv[])
     END_OPT;
 
     init_post(xpconf, key.c_str(), argc, argv);
+    
+    if (day_start == 0) // zero means today
+    {
+    	struct tm lt;
+    	time_t tt = time(NULL);
+    	localtime_r(&tt, &lt);
+    	day_start = ((lt.tm_year + 1900) * 10000) + ((lt.tm_mon + 1) * 100) + lt.tm_mday;
+    }
 
     DLOG("ChartConfig::init() type = %d-%s", type, getType());
     DLOG("ChartConfig::init() item = %d-%s", item, getItem());
