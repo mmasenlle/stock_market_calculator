@@ -1,0 +1,22 @@
+SRC_ROOT = ..
+include $(SRC_ROOT)/flags.mk
+
+TARGET = ccltor_control
+
+sources = $(wildcard *.cc)
+objects = $(sources:.cc=.o)
+
+all:	$(TARGET)
+
+$(TARGET):	$(objects)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(objects) $(LDFLAGS)
+
+$(objects): %.o: %.cc
+	$(CXX) -c $(CPPFLAGS) $(INCLUDE) $(CXXFLAGS) $< -o $@
+
+install:
+	cp $(TARGET) $(INSTALL_DIR)/$(TARGET)
+
+clean:
+	rm -f *.o $(TARGET)
+
