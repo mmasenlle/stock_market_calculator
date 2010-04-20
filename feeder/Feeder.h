@@ -20,7 +20,8 @@ class Feeder
 	struct timeval last_feed;
 	struct pollfd pfds[1];
 	char id_str[128];
-	
+
+	void handleEvent(ICEvent *event, ICPeer *peer);
 	void handleIC();
 	int feed();
 	

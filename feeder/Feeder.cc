@@ -3,6 +3,7 @@
 #include <sys/wait.h>
 #include "utils.h"
 #include "logger.h"
+#include "ICEvent2.h"
 #include "XmlReaderData.h"
 #include "Feeder.h"
 
@@ -39,8 +40,39 @@ void Feeder::sigchld_handler(int s)
 Feeder::Feeder() : newfeed(ICEVENT_FEEDER_NEWFEED), dbfeeder(&db)
 {
 	last_feed.tv_sec = last_feed.tv_usec = 0;
-	pfds[1].fd = -1;
-	pfds[1].events = POLLIN;
+	pfds[0].fd = -1;
+	pfds[0].events = POLLIN;
+}
+
+void Feeder::handleEvent(ICEvent *event, ICPeer *peer)
+{
+	ICEvent2 *ev2 = NULL;
+	if (event->getEvent() > ICEVENT_EVENT2) ev2 = (ICEvent2 *)event;
+	switch (event->getEvent())
+	{
+	case ICEVENT_CONTROL_RUNNING:
+		ILOG("Feeder::handleEvent(RUNNING:%d)", ev2->getSubEvent());
+		switch (ev2->getSubEvent())
+		{
+		case ICEVENT2_CONTROL_RUNNING_PING:
+		{
+			ICEvent2 ev(ICEVENT_CONTROL_RUNNING, ICEVENT2_CONTROL_RUNNING_ACK);
+			ev.send(&ic, peer);
+			break;
+		}
+		case ICEVENT2_CONTROL_RUNNING_STOP:
+			exit(0);
+		case ICEVENT2_CONTROL_RUNNING_RECONNECT:
+			break;
+		}
+		break;
+	case ICEVENT_CONTROL_LOGLEVEL:
+		DLOG("Feeder::handleEvent(LOGLEVEL:%d)", ev2->getSubEvent());
+		SET_LOGGER_LEVEL(ev2->getSubEvent());
+		break;
+	default:
+		WLOG("Feeder::handleEvent() -> unhandled event %d", event->getEvent());
+	}
 }
 
 void Feeder::handleIC()
@@ -55,12 +87,16 @@ void Feeder::handleIC()
 	{
 		switch (msg->getClass())
 		{
+		case ICMSGCLASS_EVENT:
+			handleEvent((ICEvent*)msg, &peer);
+			break;
 		case ICMSGCLASS_REGISTRATION:
 			obs.add(&peer, (ICRegistration*)msg);
 			break;
 		default:
 			WLOG("Feeder::handleIC() -> NOT expected msg class %d", msg->getClass());
 		}
+		delete msg;
 	}
 }
 
