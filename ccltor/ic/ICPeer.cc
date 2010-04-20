@@ -2,6 +2,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <string.h>
+#include "logger.h"
 #include "ICPeer.h"
 
 ICPeer::ICPeer()
@@ -36,6 +37,10 @@ int ICPeer::set(const char *host, int port)
 		{
 			saddr_in.sin_addr = ((struct sockaddr_in *)(addr_info->ai_addr))->sin_addr;
 			freeaddrinfo(addr_info);
+		}
+		else
+		{
+			ELOG("ICPeer::set(%s, %d) -> error resolving %d", host, port, ret);
 		}
 	}
 	return ret;
