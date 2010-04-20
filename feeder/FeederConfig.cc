@@ -17,6 +17,9 @@ void FeederConfig::init(int argc, char *argv[])
 
     std::string xp_value, key = "/ccltor_feeder";
     XPathConfig xpconf(cfg_fname.c_str());
+
+	init_post(xpconf, key.c_str(), argc, argv);
+
     if (xpconf.getValue((key + "/sdelay").c_str(), &xp_value))
         sdelay = atoi(xp_value.c_str());
     if (xpconf.getValue((key + "/days_off").c_str(), &xp_value))
@@ -47,8 +50,6 @@ void FeederConfig::init(int argc, char *argv[])
     case 'p': parser = arg; break;
     }
     END_OPT;
-
-    init_post(xpconf, key.c_str(), argc, argv);
 
     DLOG("FeederConfig::init() sdelay = %d", sdelay);
     DLOG("FeederConfig::init() days_off = %x", days_off);

@@ -54,6 +54,9 @@ void ChartConfig::init(int argc, char *argv[])
 
     std::string xp_value, key = "/ccltor_chart";
     XPathConfig xpconf(cfg_fname.c_str());
+
+	init_post(xpconf, key.c_str(), argc, argv);
+
     if (xpconf.getValue((key + "/type").c_str(), &xp_value))
     	setType(xp_value.c_str());
     if (xpconf.getValue((key + "/item").c_str(), &xp_value))
@@ -80,8 +83,6 @@ void ChartConfig::init(int argc, char *argv[])
     case 'V': value = arg; break;
     }
     END_OPT;
-
-    init_post(xpconf, key.c_str(), argc, argv);
     
     if (day_start == 0) // zero means today
     {
