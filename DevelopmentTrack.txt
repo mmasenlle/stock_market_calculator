@@ -74,5 +74,18 @@ Sun Apr 18 22:37:00 CEST 2010
  -Start a program to send messages to processes
   +First configuration (peers, event numbers)
   +Send and finish
+Comments:
+Maybe add in the future support to receive messages (ack and so on).
+Maybe add parameters more human friendly instead of event numbers.
+
+
+Wed Apr 21 23:38:43 CEST 2010
+ Cruncher concept probes
+-------------------------
+ -Program a cruncher manager
+  +Load plugins as shared libraries
+  +Create a thread/process for them (try to use clone)
+ -Program a plugin test
+
 
 
