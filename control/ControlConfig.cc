@@ -62,8 +62,8 @@ void ControlConfig::init(int argc, char *argv[])
 	int np = xpconf.getValue((key + "/peers/peer").c_str(), NULL);
 	for(int i = 0; i < np; i++)
 	{
-		xpconf.getValue((key + "/peers/peer").c_str(), &xp_value, i);
-		add_peer(xp_value.c_str());
+		if (xpconf.getValue((key + "/peers/peer").c_str(), &xp_value, i))
+			add_peer(xp_value.c_str());
 	}
 
     FOR_OPT_ARG(argc, argv)
