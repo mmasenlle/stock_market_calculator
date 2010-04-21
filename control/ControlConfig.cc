@@ -90,7 +90,7 @@ void ControlConfig::print_help()
 {
     fprintf(stdout, "Usage: ccltor_control [options]\n");
     fprintf(stdout, "Options:\n");
-    fprintf(stdout, "  -e <ev>[:<sev>]   Event to send\n");
-    fprintf(stdout, "  -p <host>:<port>[,...]   Destination peer(s)\n");
+    fprintf(stdout, "  -e <ev>[:<sev>] Event to send\n");
+    fprintf(stdout, "  -p <host>:<port>[,...] Destination peer(s)\n");
 }
 
