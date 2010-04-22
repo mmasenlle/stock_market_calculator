@@ -8,7 +8,7 @@ class CruncherTest : public ICruncher
 	ICruncherManager *manager;
 
 public:
-	int init(ICruncherManager *manager);
+	int init(ICruncherManager *icm, Logger *logger);
 	int run();
 	int msg(ICMsg *msg);
 };

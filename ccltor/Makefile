@@ -3,6 +3,7 @@ include $(SRC_ROOT)/flags.mk
 
 CPPFLAGS += -DCCLTOR_VERSION="\"$(CCLTOR_VERSION)\"" \
 	-DCCLTOR_REVISION="\"$(shell cat $(SRC_ROOT)/.git/refs/heads/master)\""
+CXXFLAGS += -fPIC
 TARGET = ccltor.a
 
 sources = $(wildcard *.cc) $(wildcard ic/*.cc) $(wildcard db/*.cc)

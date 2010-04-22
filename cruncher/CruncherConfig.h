@@ -21,8 +21,6 @@ public:
 
 	CruncherConfig();
     void init(int argc, char *argv[]);
-    
-    static CruncherConfig config;
 };
 
 #endif

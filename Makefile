@@ -1,7 +1,8 @@
 
 include flags.mk
 
-install_dirs = feeder control graphic/chart scripts
+install_dirs = feeder control graphic/chart scripts \
+		cruncher cruncher/statistics cruncher/test
 
 build_dirs = lib ccltor $(install_dirs)
 

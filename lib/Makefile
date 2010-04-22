@@ -1,6 +1,7 @@
 SRC_ROOT = ..
 include $(SRC_ROOT)/flags.mk
 
+CXXFLAGS += -fPIC
 INCLUDE = -I/usr/include/libxml2
 TARGET = ccltor_lib.a
 

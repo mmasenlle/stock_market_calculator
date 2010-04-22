@@ -15,9 +15,15 @@ class Statistics : public ICruncher
 	int newfeeds;
 	pthread_mutex_t mtx;
 	pthread_cond_t cond;
+	
+	void calculate(const std::vector<double> *data,
+			double *min, double *mean, double *max, double *std);
+	void calculate_days(const char *cod, int start);
+	void calculate_months(const char *cod, int start);
+	void calculate_years(const char *cod, int start);
 
 public:
-	int init(ICruncherManager *manager);
+	int init(ICruncherManager *manager, Logger *logger);
 	int run();
 	int msg(ICMsg *msg);
 

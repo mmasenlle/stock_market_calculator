@@ -11,7 +11,7 @@ objects = $(sources:.cc=.o)
 all:	$(TARGET)
 
 $(TARGET):	$(objects)
-	$(CXX) -shared -o $(TARGET) $(objects)
+	$(CXX) -shared -o $(TARGET) $(objects) $(LDFLAGS)
 
 $(objects): %.o: %.cc
 	$(CXX) -c $(CPPFLAGS) $(INCLUDE) $(CXXFLAGS) $< -o $@

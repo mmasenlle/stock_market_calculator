@@ -5,7 +5,6 @@
 #include "logger.h"
 #include "CruncherConfig.h"
 
-CruncherConfig CruncherConfig::config;
 
 CruncherConfig::CruncherConfig()
 {

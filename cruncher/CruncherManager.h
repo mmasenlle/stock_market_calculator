@@ -5,6 +5,7 @@
 #include <set>
 #include <pthread.h>
 #include "CcltorIC.h"
+#include "CruncherConfig.h"
 #include "ICruncher.h"
 
 struct Cruncher
@@ -28,6 +29,9 @@ class CruncherManager : public ICruncherManager
 	static int cruncher_fn(void *);
 
 public:
+	CruncherConfig config;
+
+	const char *get_db_conninfo();
 	int observe(int event);
 	int send(ICMsg *msg, const ICPeer *peer);
 

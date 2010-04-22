@@ -4,9 +4,13 @@
 #include "logger.h"
 #include "ICRegistration.h"
 #include "ICEvent2.h"
-#include "CruncherConfig.h"
 #include "CruncherManager.h"
 
+
+const char *CruncherManager::get_db_conninfo()
+{
+	return config.db_conninfo.c_str();
+}
 
 int CruncherManager::observe(int event)
 {
@@ -43,16 +47,15 @@ void CruncherManager::init()
 		ELOG("CruncherManager::init() -> pthread_mutex_init(manager): %d", r);
 		return;
 	}
-	if (ic.init(CruncherConfig::config.ic_port) == -1)
+	if (ic.init(config.ic_port) == -1)
 	{
-		SELOG("CruncherManager::init() -> ic.init(%d)", CruncherConfig::config.ic_port);
+		SELOG("CruncherManager::init() -> ic.init(%d)", config.ic_port);
 	}
-	for (int i = 0; i < CruncherConfig::config.plugins.size(); i++)
+	for (int i = 0; i < config.plugins.size(); i++)
 	{
 		ICruncher *icruncher = NULL;
 		Cruncher *cruncher = NULL;
-		std::string plugin_fname = CruncherConfig::config.plugins_path + "/libCC" +
-				CruncherConfig::config.plugins[i] + ".so";
+		std::string plugin_fname = config.plugins_path + "/libCC" +	config.plugins[i] + ".so";
 		void *handle = dlopen(plugin_fname.c_str(), RTLD_LAZY);
 		if (!handle)
 		{
@@ -93,10 +96,10 @@ void CruncherManager::init()
 				ELOG("CruncherManager::init(%d) -> cannot get child pid", i);
 				goto plugin_error;
 			}
-			usleep(1);
+//			usleep(1);
 		}	
 		crunchers[cruncher->pid] = cruncher;
-		r = icruncher->init(this);
+		r = icruncher->init(this, Logger::defaultLogger);
 		ILOG("CruncherManager::init(%d, %d) -> icruncher->init(): %d", i, cruncher->pid, r);
 		continue;
 
@@ -194,9 +197,9 @@ void CruncherManager::run()
 			if (observers.find(ICEVENT_FEEDER_NEWFEED) != observers.end())
 			{
 				ICRegistration registration(CRUNCHERMANAGER_WAITTIME * 10);
-			    for (int i = 0; i < CruncherConfig::config.feeders.size(); i++)
+			    for (int i = 0; i < config.feeders.size(); i++)
 			    {
-			    	if (registration.send(&ic, &CruncherConfig::config.feeders[i]) <= 0)
+			    	if (registration.send(&ic, &config.feeders[i]) <= 0)
 			    	{
 			    		SELOG("CruncherManager::run() -> registration.send(ICEVENT_FEEDER_NEWFEED)");
 			    	}
