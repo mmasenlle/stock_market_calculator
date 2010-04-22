@@ -85,13 +85,14 @@ void ChartConfig::init(int argc, char *argv[])
     END_OPT;
     
     if (day_start == 0) // zero means today
-    {
+		day_start = utils::today();
+/*    {
     	struct tm lt;
     	time_t tt = time(NULL);
     	localtime_r(&tt, &lt);
     	day_start = ((lt.tm_year + 1900) * 10000) + ((lt.tm_mon + 1) * 100) + lt.tm_mday;
     }
-
+*/
     DLOG("ChartConfig::init() type = %d-%s", type, getType());
     DLOG("ChartConfig::init() item = %d-%s", item, getItem());
     DLOG("ChartConfig::init() day_start = %08d", day_start);

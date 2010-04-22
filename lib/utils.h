@@ -6,6 +6,9 @@
 namespace utils
 {
 	int strtot(const char *iso8601);
+	int today();
+	int dec_day(int day);
+
 	int nohup();
 }
 
