@@ -69,22 +69,22 @@ void Chart::get_points()
 	switch (config.item)
 	{
 	case CHARTITEM_PRICE:
-		r = dbfeeder.get_value_prices(config.value.c_str(),
+		r = dbfeeder.get_value_data(config.value.c_str(), FEEDER_DATAITEM_PRICE,
 				config.day_start, config.time_start, config.day_end, config.time_end,
 			    &raw_data, &raw_dates, &raw_times);
 		break;
 	case CHARTITEM_VOLUME:
-		r = dbfeeder.get_value_volumes(config.value.c_str(),
+		r = dbfeeder.get_value_data(config.value.c_str(), FEEDER_DATAITEM_VOLUME,
 			    config.day_start, config.time_start, config.day_end, config.time_end,
 			    &raw_data, &raw_dates, &raw_times);
 		break;
 	case CHARTITEM_CAPITAL:
-		r = dbfeeder.get_value_capitals(config.value.c_str(),
+		r = dbfeeder.get_value_data(config.value.c_str(), FEEDER_DATAITEM_CAPITAL,
 			    config.day_start, config.time_start, config.day_end, config.time_end,
 			    &raw_data, &raw_dates, &raw_times);
 		break;
 	}
-	
+
 	if (raw_data.size())
 	{
 		float acum_y = (config.item == CHARTTYPE_MEAN) ? 0.0 : raw_data[0];
