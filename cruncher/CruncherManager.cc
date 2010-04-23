@@ -7,11 +7,6 @@
 #include "CruncherManager.h"
 
 
-const char *CruncherManager::get_db_conninfo()
-{
-	return config.db_conninfo.c_str();
-}
-
 int CruncherManager::observe(int event)
 {
 	DLOG("CruncherManager::observe(%d) -> pid: %d", event, getpid());
@@ -37,6 +32,11 @@ write(1, "cruncher2_fn", 12);
 	cruncher->cruncher->run();
 	WLOG("CruncherManager::cruncher_fn(%d) -> returned", cruncher->pid);
 	return 1;
+}
+
+CruncherManager::CruncherManager()
+{
+	ccfg = &config;
 }
 
 void CruncherManager::init()
@@ -75,14 +75,14 @@ void CruncherManager::init()
 		}
 		cruncher = new Cruncher;
 		cruncher->cruncher = icruncher;
-		cruncher->pid = 0;
+		cruncher->pid = i; //0;
 		if ((r = pthread_mutex_init(&cruncher->mtx, NULL)) != 0)
 		{
 			ELOG("CruncherManager::init(%d) -> pthread_mutex_init(cruncher): %d", i, r);
 			goto plugin_error;
 		}
 		pthread_mutex_lock(&cruncher->mtx);
-		if (clone(cruncher_fn, ((char*)cruncher->cruncher) - sizeof(void*), 
+/*		if (clone(cruncher_fn, ((char*)cruncher->cruncher) - sizeof(void*), 
 				CLONE_FS | CLONE_FILES | CLONE_SIGHAND | CLONE_PTRACE | CLONE_VM, cruncher) == -1)
 		{
 			SELOG("CruncherManager::init(%d) -> clone", i);
@@ -98,8 +98,8 @@ void CruncherManager::init()
 			}
 //			usleep(1);
 		}	
-		crunchers[cruncher->pid] = cruncher;
-		r = icruncher->init(this, Logger::defaultLogger);
+*/		crunchers[cruncher->pid] = cruncher;
+		r = icruncher->init(this);
 		ILOG("CruncherManager::init(%d, %d) -> icruncher->init(): %d", i, cruncher->pid, r);
 		continue;
 

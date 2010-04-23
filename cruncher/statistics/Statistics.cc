@@ -33,16 +33,15 @@ Statistics::~Statistics()
 	}
 }
 
-int Statistics::init(ICruncherManager *icm, Logger *logger)
+int Statistics::init(ICruncherManager *icm)
 {
-//	Logger::defaultLogger = logger;
 	manager = icm;
-	if (db.connect(manager->get_db_conninfo()) != CONNECTION_OK)
+	if (db.connect(manager->ccfg->db_conninfo.c_str()) != CONNECTION_OK)
 	{
-		ELOG("Statistics::init() -> db.connect(%s)", manager->get_db_conninfo());
+		ELOG("Statistics::init() -> db.connect(%s)", manager->ccfg->db_conninfo.c_str());
 		return -1;
 	}
-
+	force_until = manager->ccfg->force_until;
 	return 0;
 }
 

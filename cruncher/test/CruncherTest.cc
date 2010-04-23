@@ -8,9 +8,8 @@ extern "C" ICruncher * CRUNCHER_GETINSTANCE()
 	return new CruncherTest;
 }
 
-int CruncherTest::init(ICruncherManager *icm, Logger *logger)
+int CruncherTest::init(ICruncherManager *icm)
 {
-//	Logger::defaultLogger = logger;
 	DLOG("CruncherTest::init(%p) -> pid: %d, this: %p, ~stack: %p", icm, getpid(), this, &icm);
 	manager = icm;
 	return 0;

@@ -18,6 +18,7 @@ struct Cruncher
 
 class CruncherManager : public ICruncherManager
 {
+	CruncherConfig config;
 	CcltorIC ic;
 	
 	pthread_mutex_t manager_mtx;
@@ -29,9 +30,8 @@ class CruncherManager : public ICruncherManager
 	static int cruncher_fn(void *);
 
 public:
-	CruncherConfig config;
+	CruncherManager();
 
-	const char *get_db_conninfo();
 	int observe(int event);
 	int send(ICMsg *msg, const ICPeer *peer);
 

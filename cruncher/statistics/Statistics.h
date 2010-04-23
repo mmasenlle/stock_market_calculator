@@ -27,7 +27,7 @@ class Statistics : public ICruncher
 	void calculate_years(const char *cod, int start);
 
 public:
-	int init(ICruncherManager *manager, Logger *logger);
+	int init(ICruncherManager *manager);
 	int run();
 	int msg(ICMsg *msg);
 

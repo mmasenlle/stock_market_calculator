@@ -8,6 +8,7 @@
 
 CruncherConfig::CruncherConfig()
 {
+	force_until = 0;
 	plugins_path = ".";
     ic_port = 17300;
 }
@@ -48,7 +49,9 @@ void CruncherConfig::init(int argc, char *argv[])
     XPathConfig xpconf(cfg_fname.c_str());
     
     init_post(xpconf, key.c_str(), argc, argv);
-    
+
+	if (xpconf.getValue((key + "/force_until").c_str(), &xp_value))
+        force_until = atoi(xp_value.c_str());
     xpconf.getValue((key + "/plugins_path").c_str(), &plugins_path);
 	int np = xpconf.getValue((key + "/plugins/plugin").c_str(), NULL);
 	for(int i = 0; i < np; i++)
@@ -67,9 +70,11 @@ void CruncherConfig::init(int argc, char *argv[])
     {
     case 'P': plugins_path = arg; break;
     case 'p': add_plugins(arg); break;
+	case 'u': force_until = atoi(arg); break;
     }
     END_OPT;
 
+	DLOG("CruncherConfig::init() force_until = %d", force_until);
     DLOG("CruncherConfig::init() plugins_path = '%s'", plugins_path.c_str());
     for (int i = 0; i < plugins.size(); i++)
     {
@@ -93,5 +98,6 @@ void CruncherConfig::print_help()
     fprintf(stdout, "Options:\n");
     fprintf(stdout, "  -P <path>       Plugin files path\n");
     fprintf(stdout, "  -p <plugin>[, ] Plugin(s) to load\n");
+	fprintf(stdout, "  -u <day>        Force calculations until this day\n");
 }
 
