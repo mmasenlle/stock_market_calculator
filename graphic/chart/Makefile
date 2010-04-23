@@ -10,7 +10,7 @@ objects = $(sources:.cc=.o)
 all:	$(TARGET)
 
 $(TARGET):	$(objects)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(objects) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(objects) $(CCLTOR_LIB) $(LDFLAGS)
 
 $(objects): %.o: %.cc
 	$(CXX) -c $(CPPFLAGS) $(INCLUDE) $(CXXFLAGS) $< -o $@
