@@ -1,5 +1,6 @@
 
 #include <stdlib.h>
+#include "utils.h"
 #include "DBstatistics.h"
 
 DBstatistics::DBstatistics(CcltorDB *db) : mdb(db) {}
@@ -111,181 +112,123 @@ int DBstatistics::insert_year(const char *value, int yyyymmdd,
 	return ret;
 }
 
-int DBstatistics::get_day(const char *value, int yyyymmdd,
-		int *cnt_price, int *cnt_volume, int *cnt_capital,
-		double *min_price, double *min_volume, double *min_capital,
-		double *mean_price, double *mean_volume, double *mean_capital,
-		double *max_price, double *max_volume, double *max_capital,
-		double *std_price, double *std_volume, double *std_capital)
+static const char *statistics_item_names[LAST_STATISTICS_STC][LAST_STATISTICS_ITEM] = {
+		{ "cnt_price", "cnt_volume", "cnt_capital" },
+		{ "min_price", "min_volume", "min_capital" },
+		{ "mean_price", "mean_volume", "mean_capital" },
+		{ "max_price", "max_volume", "max_capital" },
+		{ "std_price", "std_volume", "std_capital" },
+};
+static const char *statistics_get_sql_fmt =
+	"SELECT %s FROM %s WHERE value = '%s' AND date >= '%08d' AND date <= '%08d';";
+int DBstatistics::get_day(const char *value, int item, int stc, int yyyymmdd_start, int yyyymmdd_end,
+		std::vector<double> *data, std::vector<int> *days)
 {
 	int ret = 0;
-	char buffer[512];
-	snprintf(buffer, sizeof(buffer),
-			"SELECT cnt_price, cnt_volume, cnt_capital, min_price, min_volume, min_capital, "
-			"mean_price, mean_volume, mean_capital, max_price, max_volume, max_capital, "
-			"std_price, std_volume, std_capital FROM statistics_of_day "
-			"WHERE value = '%s' AND date = '%08d';",
-			value, yyyymmdd);
-	PGresult *r = mdb->exec_sql(buffer);
-	if (r)
-	{
-		char *s;
-		ret = PQntuples(r);
-		for (int i = 0; i < ret; i++)
+	if (item < LAST_STATISTICS_ITEM && stc < LAST_STATISTICS_STC)
+	{	// 0, -1 means no limit
+		if (yyyymmdd_start < 20000101) yyyymmdd_start = 20000101;
+		if (yyyymmdd_end < 20000101) yyyymmdd_end = 20500101;
+		char buffer[256];
+		snprintf(buffer, sizeof(buffer), statistics_get_sql_fmt, statistics_item_names[item][stc],
+				"statistics_of_day", value, yyyymmdd_start, yyyymmdd_end);
+		PGresult *r = mdb->exec_sql(buffer);
+		if (r)
 		{
-			if (cnt_price && (s = PQgetvalue(r, i, 0)))
-				*cnt_price = strtol(s, NULL, 10);
-			if (cnt_volume && (s = PQgetvalue(r, i, 1)))
-				*cnt_volume = strtol(s, NULL, 10);
-			if (cnt_capital && (s = PQgetvalue(r, i, 2)))
-				*cnt_capital = strtol(s, NULL, 10);
-			if (min_price && (s = PQgetvalue(r, i, 3)))
-				*min_price = strtod(s, NULL);
-			if (min_volume && (s = PQgetvalue(r, i, 4)))
-				*min_volume = strtod(s, NULL);
-			if (min_capital && (s = PQgetvalue(r, i, 5)))
-				*min_capital = strtod(s, NULL);
-			if (mean_price && (s = PQgetvalue(r, i, 6)))
-				*mean_price = strtod(s, NULL);
-			if (mean_volume && (s = PQgetvalue(r, i, 7)))
-				*mean_volume = strtod(s, NULL);
-			if (mean_capital && (s = PQgetvalue(r, i, 8)))
-				*mean_capital = strtod(s, NULL);
-			if (max_price && (s = PQgetvalue(r, i, 9)))
-				*max_price = strtod(s, NULL);
-			if (max_volume && (s = PQgetvalue(r, i, 10)))
-				*max_volume = strtod(s, NULL);
-			if (max_capital && (s = PQgetvalue(r, i, 11)))
-				*max_capital = strtod(s, NULL);
-			if (std_price && (s = PQgetvalue(r, i, 12)))
-				*std_price = strtod(s, NULL);
-			if (std_volume && (s = PQgetvalue(r, i, 13)))
-				*std_volume = strtod(s, NULL);
-			if (std_capital && (s = PQgetvalue(r, i, 14)))
-				*std_capital = strtod(s, NULL);
+			ret = PQntuples(r);
+			if (data) data->clear();
+			if (days) days->clear();
+			for (int i = 0; i < ret; i++)
+			{
+				if (data)
+				{
+					char *str = PQgetvalue(r, i, 0);
+					if (str) data->push_back(strtod(str, NULL));
+				}
+				if (days)
+				{
+					char *str = PQgetvalue(r, i, 1);
+					if (str) days->push_back(utils::strtot(str));
+				}
+			}
+			PQclear(r);
 		}
-		PQclear(r);
-		ret++;
 	}
 	return ret;
 }
 
-int DBstatistics::get_month(const char *value, int yyyymmdd,
-		int *cnt_price, int *cnt_volume, int *cnt_capital,
-		double *min_price, double *min_volume, double *min_capital,
-		double *mean_price, double *mean_volume, double *mean_capital,
-		double *max_price, double *max_volume, double *max_capital,
-		double *std_price, double *std_volume, double *std_capital)
+int DBstatistics::get_month(const char *value, int item, int stc, int yyyymmdd_start, int yyyymmdd_end,
+		std::vector<double> *data, std::vector<int> *months)
 {
 	int ret = 0;
-	yyyymmdd = ((yyyymmdd / 100) * 100) + 1; //first day of the month
-	char buffer[512];
-	snprintf(buffer, sizeof(buffer),
-			"SELECT cnt_price, cnt_volume, cnt_capital, min_price, min_volume, min_capital, "
-			"mean_price, mean_volume, mean_capital, max_price, max_volume, max_capital, "
-			"std_price, std_volume, std_capital FROM statistics_of_month "
-			"WHERE value = '%s' AND date = '%08d';",
-			value, yyyymmdd);
-	PGresult *r = mdb->exec_sql(buffer);
-	if (r)
-	{
-		char *s;
-		ret = PQntuples(r);
-		for (int i = 0; i < ret; i++)
+	if (item < LAST_STATISTICS_ITEM && stc < LAST_STATISTICS_STC)
+	{	// 0, -1 means no limit
+		if (yyyymmdd_start < 20000101) yyyymmdd_start = 20000101;
+		yyyymmdd_start = ((yyyymmdd_start / 100) * 100) + 1;
+		if (yyyymmdd_end < 20000101) yyyymmdd_end = 20500101;
+		yyyymmdd_end = ((yyyymmdd_end / 100) * 100) + 1;
+		char buffer[256];
+		snprintf(buffer, sizeof(buffer), statistics_get_sql_fmt, statistics_item_names[item][stc],
+				"statistics_of_month", value, yyyymmdd_start, yyyymmdd_end);
+		PGresult *r = mdb->exec_sql(buffer);
+		if (r)
 		{
-			if (cnt_price && (s = PQgetvalue(r, i, 0)))
-				*cnt_price = strtol(s, NULL, 10);
-			if (cnt_volume && (s = PQgetvalue(r, i, 1)))
-				*cnt_volume = strtol(s, NULL, 10);
-			if (cnt_capital && (s = PQgetvalue(r, i, 2)))
-				*cnt_capital = strtol(s, NULL, 10);
-			if (min_price && (s = PQgetvalue(r, i, 3)))
-				*min_price = strtod(s, NULL);
-			if (min_volume && (s = PQgetvalue(r, i, 4)))
-				*min_volume = strtod(s, NULL);
-			if (min_capital && (s = PQgetvalue(r, i, 5)))
-				*min_capital = strtod(s, NULL);
-			if (mean_price && (s = PQgetvalue(r, i, 6)))
-				*mean_price = strtod(s, NULL);
-			if (mean_volume && (s = PQgetvalue(r, i, 7)))
-				*mean_volume = strtod(s, NULL);
-			if (mean_capital && (s = PQgetvalue(r, i, 8)))
-				*mean_capital = strtod(s, NULL);
-			if (max_price && (s = PQgetvalue(r, i, 9)))
-				*max_price = strtod(s, NULL);
-			if (max_volume && (s = PQgetvalue(r, i, 10)))
-				*max_volume = strtod(s, NULL);
-			if (max_capital && (s = PQgetvalue(r, i, 11)))
-				*max_capital = strtod(s, NULL);
-			if (std_price && (s = PQgetvalue(r, i, 12)))
-				*std_price = strtod(s, NULL);
-			if (std_volume && (s = PQgetvalue(r, i, 13)))
-				*std_volume = strtod(s, NULL);
-			if (std_capital && (s = PQgetvalue(r, i, 14)))
-				*std_capital = strtod(s, NULL);
+			ret = PQntuples(r);
+			if (data) data->clear();
+			if (months) months->clear();
+			for (int i = 0; i < ret; i++)
+			{
+				if (data)
+				{
+					char *str = PQgetvalue(r, i, 0);
+					if (str) data->push_back(strtod(str, NULL));
+				}
+				if (months)
+				{
+					char *str = PQgetvalue(r, i, 1);
+					if (str) months->push_back(utils::strtot(str));
+				}
+			}
+			PQclear(r);
 		}
-		PQclear(r);
-		ret++;
 	}
 	return ret;
 }
 
-int DBstatistics::get_year(const char *value, int yyyymmdd,
-		int *cnt_price, int *cnt_volume, int *cnt_capital,
-		double *min_price, double *min_volume, double *min_capital,
-		double *mean_price, double *mean_volume, double *mean_capital,
-		double *max_price, double *max_volume, double *max_capital,
-		double *std_price, double *std_volume, double *std_capital)
+int DBstatistics::get_year(const char *value, int item, int stc, int yyyymmdd_start, int yyyymmdd_end,
+		std::vector<double> *data, std::vector<int> *years)
 {
 	int ret = 0;
-	yyyymmdd = ((yyyymmdd / 10000) * 10000) + 101; //first day of the year
-	char buffer[512];
-	snprintf(buffer, sizeof(buffer),
-			"SELECT cnt_price, cnt_volume, cnt_capital, min_price, min_volume, min_capital, "
-			"mean_price, mean_volume, mean_capital, max_price, max_volume, max_capital, "
-			"std_price, std_volume, std_capital FROM statistics_of_year "
-			"WHERE value = '%s' AND date = '%08d';",
-			value, yyyymmdd);
-	PGresult *r = mdb->exec_sql(buffer);
-	if (r)
-	{
-		char *s;
-		ret = PQntuples(r);
-		for (int i = 0; i < ret; i++)
+	if (item < LAST_STATISTICS_ITEM && stc < LAST_STATISTICS_STC)
+	{	// 0, -1 means no limit
+		if (yyyymmdd_start < 20000101) yyyymmdd_start = 20000101;
+		yyyymmdd_start = ((yyyymmdd_start / 10000) * 10000) + 101;
+		if (yyyymmdd_end < 20000101) yyyymmdd_end = 20500101;
+		yyyymmdd_end = ((yyyymmdd_end / 10000) * 10000) + 101;
+		char buffer[256];
+		snprintf(buffer, sizeof(buffer), statistics_get_sql_fmt, statistics_item_names[item][stc],
+				"statistics_of_year", value, yyyymmdd_start, yyyymmdd_end);
+		PGresult *r = mdb->exec_sql(buffer);
+		if (r)
 		{
-			if (cnt_price && (s = PQgetvalue(r, i, 0)))
-				*cnt_price = strtol(s, NULL, 10);
-			if (cnt_volume && (s = PQgetvalue(r, i, 1)))
-				*cnt_volume = strtol(s, NULL, 10);
-			if (cnt_capital && (s = PQgetvalue(r, i, 2)))
-				*cnt_capital = strtol(s, NULL, 10);
-			if (min_price && (s = PQgetvalue(r, i, 3)))
-				*min_price = strtod(s, NULL);
-			if (min_volume && (s = PQgetvalue(r, i, 4)))
-				*min_volume = strtod(s, NULL);
-			if (min_capital && (s = PQgetvalue(r, i, 5)))
-				*min_capital = strtod(s, NULL);
-			if (mean_price && (s = PQgetvalue(r, i, 6)))
-				*mean_price = strtod(s, NULL);
-			if (mean_volume && (s = PQgetvalue(r, i, 7)))
-				*mean_volume = strtod(s, NULL);
-			if (mean_capital && (s = PQgetvalue(r, i, 8)))
-				*mean_capital = strtod(s, NULL);
-			if (max_price && (s = PQgetvalue(r, i, 9)))
-				*max_price = strtod(s, NULL);
-			if (max_volume && (s = PQgetvalue(r, i, 10)))
-				*max_volume = strtod(s, NULL);
-			if (max_capital && (s = PQgetvalue(r, i, 11)))
-				*max_capital = strtod(s, NULL);
-			if (std_price && (s = PQgetvalue(r, i, 12)))
-				*std_price = strtod(s, NULL);
-			if (std_volume && (s = PQgetvalue(r, i, 13)))
-				*std_volume = strtod(s, NULL);
-			if (std_capital && (s = PQgetvalue(r, i, 14)))
-				*std_capital = strtod(s, NULL);
+			ret = PQntuples(r);
+			if (data) data->clear();
+			if (years) years->clear();
+			for (int i = 0; i < ret; i++)
+			{
+				if (data)
+				{
+					char *str = PQgetvalue(r, i, 0);
+					if (str) data->push_back(strtod(str, NULL));
+				}
+				if (years)
+				{
+					char *str = PQgetvalue(r, i, 1);
+					if (str) years->push_back(utils::strtot(str));
+				}
+			}
+			PQclear(r);
 		}
-		PQclear(r);
-		ret++;
 	}
 	return ret;
 }

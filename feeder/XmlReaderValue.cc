@@ -50,7 +50,8 @@ void XmlReaderValue::done()
 		return;
 	}
 	code = values[CODE][0];
-	int hhmmss_time = 0;	if (values.find(TIME) == values.end() || values[TIME].size() != 1)
+	int hhmmss_time = 0;
+	if (values.find(TIME) == values.end() || values[TIME].size() != 1)
 	{
 		WLOG("XmlReaderValue::done(%s) -> NO time (or several) in the value", code.c_str());
 		return;
@@ -112,6 +113,8 @@ void XmlReaderValue::done()
 		capital = strtod(values[CAPITAL][0].c_str(), NULL);
 	}
 
-	Feeder::feeder.dbfeeder.insert_price(code.c_str(), name.c_str(), price, volume, capital, hhmmss_time);	DLOG("XmlReaderValue::done(%s) -> name='%s' price=%f volume=%f capital=%f time=%06d",
+	Feeder::feeder.dbfeeder.insert_value(code.c_str(), name.c_str(), price, volume, capital, hhmmss_time);
+	DLOG("XmlReaderValue::done(%s) -> name='%s' price=%f volume=%f capital=%f time=%06d",
 	    code.c_str(), name.c_str(), price, volume, capital, hhmmss_time);
 }
+
