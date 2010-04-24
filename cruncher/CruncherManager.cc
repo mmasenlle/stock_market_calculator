@@ -73,7 +73,6 @@ void CruncherManager::init()
 		}
 		cruncher = new Cruncher;
 		cruncher->cruncher = icruncher;
-		cruncher->pid = i; //0;
 		if ((r = pthread_mutex_init(&cruncher->mtx, NULL)) != 0)
 		{
 			ELOG("CruncherManager::init(%d) -> pthread_mutex_init(cruncher): %d", i, r);
@@ -174,13 +173,6 @@ void CruncherManager::run()
 	pfd.events = POLLIN;
 	for (;;)
 	{
-ICEvent ev(ICEVENT_FEEDER_NEWFEED);
-	for (std::map<int, Cruncher *>::iterator i = crunchers.begin(); i != crunchers.end(); i++)
-	{
-DLOG("CruncherManager::run() -> msg to %d", i->first);
-		i->second->cruncher->msg(&ev);
-	}
-		
 		if (poll(&pfd, 1, CRUNCHERMANAGER_WAITTIME) == -1 && errno != EINTR)
 		{
 			SELOG("CruncherManager::run() -> poll(%d, %d)", pfd.fd, CRUNCHERMANAGER_WAITTIME);
