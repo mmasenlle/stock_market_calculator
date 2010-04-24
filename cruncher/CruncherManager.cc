@@ -24,11 +24,9 @@ int CruncherManager::send(ICMsg *msg, const ICPeer *peer)
 int CruncherManager::cruncher_fn(void *arg)
 {
 	Cruncher *cruncher = (Cruncher *)arg;
-	cruncher->pid = getpid();
-write(1, "cruncher_fn", 12);
+	DLOG("CruncherManager::cruncher_fn(%d) -> cruncher: %p", cruncher->pid, cruncher);
 	pthread_mutex_lock(&cruncher->mtx);
 	pthread_mutex_unlock(&cruncher->mtx);
-write(1, "cruncher2_fn", 12);
 	cruncher->cruncher->run();
 	WLOG("CruncherManager::cruncher_fn(%d) -> returned", cruncher->pid);
 	return 1;
@@ -82,23 +80,14 @@ void CruncherManager::init()
 			goto plugin_error;
 		}
 		pthread_mutex_lock(&cruncher->mtx);
-/*		if (clone(cruncher_fn, ((char*)cruncher->cruncher) - sizeof(void*), 
-				CLONE_FS | CLONE_FILES | CLONE_SIGHAND | CLONE_PTRACE | CLONE_VM, cruncher) == -1)
+		cruncher->pid = clone(cruncher_fn, cruncher->stack + sizeof(cruncher->stack) - sizeof(void*), 
+				CLONE_FS | CLONE_FILES | CLONE_SIGHAND | CLONE_PTRACE | CLONE_VM, cruncher);
+		if (cruncher->pid == -1)
 		{
 			SELOG("CruncherManager::init(%d) -> clone", i);
 			goto plugin_error;
 		}
-//getchar();
-		for (int j = 0; !cruncher->pid; j++)
-		{
-			if (j > 100)
-			{
-				ELOG("CruncherManager::init(%d) -> cannot get child pid", i);
-				goto plugin_error;
-			}
-//			usleep(1);
-		}	
-*/		crunchers[cruncher->pid] = cruncher;
+		crunchers[cruncher->pid] = cruncher;
 		r = icruncher->init(this);
 		ILOG("CruncherManager::init(%d, %d) -> icruncher->init(): %d", i, cruncher->pid, r);
 		continue;
@@ -175,6 +164,7 @@ void CruncherManager::handleIC()
 
 void CruncherManager::run()
 {
+	DLOG("CruncherManager::run() -> crunchers.size(): %d", crunchers.size());
 	for (std::map<int, Cruncher *>::iterator i = crunchers.begin(); i != crunchers.end(); i++)
 	{
 		pthread_mutex_unlock(&i->second->mtx);
@@ -184,6 +174,13 @@ void CruncherManager::run()
 	pfd.events = POLLIN;
 	for (;;)
 	{
+ICEvent ev(ICEVENT_FEEDER_NEWFEED);
+	for (std::map<int, Cruncher *>::iterator i = crunchers.begin(); i != crunchers.end(); i++)
+	{
+DLOG("CruncherManager::run() -> msg to %d", i->first);
+		i->second->cruncher->msg(&ev);
+	}
+		
 		if (poll(&pfd, 1, CRUNCHERMANAGER_WAITTIME) == -1 && errno != EINTR)
 		{
 			SELOG("CruncherManager::run() -> poll(%d, %d)", pfd.fd, CRUNCHERMANAGER_WAITTIME);
