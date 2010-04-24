@@ -1,0 +1,13 @@
+<!-- ccltor_control configuration file example -->
+<ccltor_control>
+    <event>4:5</event>
+    <peers>
+    	<peer>localhost:17100</peer>
+    	<peer>localhost:17200</peer>
+    	<peer>localhost:17300</peer>
+    </peers>
+    <ic_port>17777</ic_port>
+    <log_level>5</log_level>
+    <log_fname>_</log_fname>
+</ccltor_control>
+

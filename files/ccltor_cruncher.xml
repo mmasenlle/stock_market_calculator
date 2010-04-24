@@ -1,0 +1,15 @@
+<!-- ccltor_cruncher configuration file example -->
+<ccltor_cruncher>
+    <force_until>0</force_until>
+    <plugins_path>.</plugins_path>
+    <plugins>
+    	<plugin>statistics</plugin>
+    </plugins>
+    <feeders>
+    	<feeder>localhost:17100</feeder>
+    </feeders>
+    <ic_port>17300</ic_port>
+    <log_level>5</log_level>
+    <log_fname>logs/cruncher.log</log_fname>
+</ccltor_cruncher>
+
