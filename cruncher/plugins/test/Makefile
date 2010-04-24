@@ -1,9 +1,9 @@
-SRC_ROOT = ../..
+SRC_ROOT = ../../..
 include $(SRC_ROOT)/flags.mk
 
 INCLUDE += -I$(SRC_ROOT)/cruncher
 CXXFLAGS += -fPIC
-TARGET = libCCstatistics.so
+TARGET = libCCtest.so
 
 sources = $(wildcard *.cc)
 objects = $(sources:.cc=.o)
