@@ -130,7 +130,7 @@ int DBstatistics::get_day(const char *value, int item, int stc, int yyyymmdd_sta
 		if (yyyymmdd_start < 20000101) yyyymmdd_start = 20000101;
 		if (yyyymmdd_end < 20000101) yyyymmdd_end = 20500101;
 		char buffer[256];
-		snprintf(buffer, sizeof(buffer), statistics_get_sql_fmt, statistics_item_names[item][stc],
+		snprintf(buffer, sizeof(buffer), statistics_get_sql_fmt, statistics_item_names[stc][item],
 				"statistics_of_day", value, yyyymmdd_start, yyyymmdd_end);
 		PGresult *r = mdb->exec_sql(buffer);
 		if (r)
@@ -168,7 +168,7 @@ int DBstatistics::get_month(const char *value, int item, int stc, int yyyymmdd_s
 		if (yyyymmdd_end < 20000101) yyyymmdd_end = 20500101;
 		yyyymmdd_end = ((yyyymmdd_end / 100) * 100) + 1;
 		char buffer[256];
-		snprintf(buffer, sizeof(buffer), statistics_get_sql_fmt, statistics_item_names[item][stc],
+		snprintf(buffer, sizeof(buffer), statistics_get_sql_fmt, statistics_item_names[stc][item],
 				"statistics_of_month", value, yyyymmdd_start, yyyymmdd_end);
 		PGresult *r = mdb->exec_sql(buffer);
 		if (r)
@@ -206,7 +206,7 @@ int DBstatistics::get_year(const char *value, int item, int stc, int yyyymmdd_st
 		if (yyyymmdd_end < 20000101) yyyymmdd_end = 20500101;
 		yyyymmdd_end = ((yyyymmdd_end / 10000) * 10000) + 101;
 		char buffer[256];
-		snprintf(buffer, sizeof(buffer), statistics_get_sql_fmt, statistics_item_names[item][stc],
+		snprintf(buffer, sizeof(buffer), statistics_get_sql_fmt, statistics_item_names[stc][item],
 				"statistics_of_year", value, yyyymmdd_start, yyyymmdd_end);
 		PGresult *r = mdb->exec_sql(buffer);
 		if (r)

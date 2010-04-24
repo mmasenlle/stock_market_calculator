@@ -50,7 +50,7 @@ int Statistics::calculate(const std::vector<double> *data,
 {
 	*min = DBL_MAX;
 	*mean = 0.0;
-	*max = DBL_MIN;
+	*max = -DBL_MAX;
 	for (int j = 0; j < data->size(); j++)
 	{
 		if (*min > data->at(j)) *min = data->at(j);
@@ -86,9 +86,9 @@ void Statistics::calculate_days(const char *cod, int start)
 			r[j][0] = calculate(&v[j], &r[j][1], &r[j][2], &r[j][3], &r[j][4]);
 			some_data = some_data || (r[j][0] > 0.0);
 		}
-		if (!force_until && !some_data)
+		if (!some_data)
 		{
-			if (++empty_days > 15)
+			if (!force_until && ++empty_days > 15)
 			{
 				DLOG("Statistics::calculate_days(%s) -> %08d empty_days: %d, returning ...", cod, day, empty_days);
 				return;
@@ -106,8 +106,9 @@ void Statistics::calculate_days(const char *cod, int start)
 				the_same = (d.size() == 1 && r[j][k] == d[0]);
 			}
 		}
-		if (!force_until && the_same)
+		if (the_same)
 		{
+			if (force_until) continue;
 			DLOG("Statistics::calculate_days(%s) -> %08d same data, returning ...", cod, day);
 			return;
 		}
@@ -125,8 +126,8 @@ double Statistics::meta_calculate(const std::vector<double> *data, int what)
 	{
 	case 0: for (int i = 0; i < data->size(); i++) r += data->at(i); break;
 	case 1: r = DBL_MAX; for (int i = 0; i < data->size(); i++) if (r > data->at(i)) r = data->at(i); break;
-	case 3: r = DBL_MIN; for (int i = 0; i < data->size(); i++) if (r < data->at(i)) r = data->at(i); break;
-	default: for (int i = 0; i < data->size(); i++) r += data->at(i); r/= data->size(); break;
+	case 3: r = -DBL_MAX; for (int i = 0; i < data->size(); i++) if (r < data->at(i)) r = data->at(i); break;
+	default: for (int i = 0; i < data->size(); i++) r += data->at(i); r /= data->size(); break;
 	}
 	return r;
 }
@@ -154,12 +155,13 @@ void Statistics::calculate_months(const char *cod, int start)
 				}
 			}
 		}
-		if (!force_until && !some_data)
+		bool the_same = true;
+		if (!some_data)
 		{
+			if (force_until) goto cont;
 			DLOG("Statistics::calculate_months(%s) -> %08d no data, returning ...", cod, first_mday);
 			return;
 		}
-		bool the_same = true;
 		for (int j = 0; the_same && j < 3; j++)
 		{
 			for (int k = 0; the_same && k < 5; k++)
@@ -169,8 +171,9 @@ void Statistics::calculate_months(const char *cod, int start)
 				the_same = (d.size() == 1 && r[j][k] == d[0]);
 			}
 		}
-		if (!force_until && the_same)
+		if (the_same)
 		{
+			if (force_until) goto cont;
 			DLOG("Statistics::calculate_months(%s) -> %08d same data, returning ...", cod, first_mday);
 			return;
 		}
@@ -178,6 +181,7 @@ void Statistics::calculate_months(const char *cod, int start)
 		dbstatistics.insert_month(cod, first_mday, r[0][0], r[1][0], r[2][0],
 				r[0][1], r[1][1], r[2][1], r[0][2], r[1][2], r[2][2],
 				r[0][3], r[1][3], r[2][3], r[0][4], r[1][4], r[2][4]);
+cont:
 		last_mday = utils::dec_day(first_mday);
 		first_mday = ((last_mday / 100) * 100) + 1;
 	}
@@ -206,12 +210,13 @@ void Statistics::calculate_years(const char *cod, int start)
 				}
 			}
 		}
-		if (!force_until && !some_data)
+		bool the_same = true;
+		if (!some_data)
 		{
+			if (force_until) goto cont;
 			DLOG("Statistics::calculate_years(%s) -> %08d no data, returning ...", cod, first_yday);
 			return;
 		}
-		bool the_same = true;
 		for (int j = 0; the_same && j < 3; j++)
 		{
 			for (int k = 0; the_same && k < 5; k++)
@@ -221,8 +226,9 @@ void Statistics::calculate_years(const char *cod, int start)
 				the_same = (d.size() == 1 && r[j][k] == d[0]);
 			}
 		}
-		if (!force_until && the_same)
+		if (the_same)
 		{
+			if (force_until) goto cont;
 			DLOG("Statistics::calculate_years(%s) -> %08d same data, returning ...", cod, first_yday);
 			return;
 		}
@@ -230,8 +236,9 @@ void Statistics::calculate_years(const char *cod, int start)
 		dbstatistics.insert_year(cod, first_yday, r[0][0], r[1][0], r[2][0],
 				r[0][1], r[1][1], r[2][1], r[0][2], r[1][2], r[2][2],
 				r[0][3], r[1][3], r[2][3], r[0][4], r[1][4], r[2][4]);
+cont:
 		last_yday = utils::dec_day(first_yday);
-		first_yday = ((last_yday / 100) * 100) + 1;
+		first_yday = ((last_yday / 10000) * 10000) + 101;
 	}
 }
 
@@ -260,7 +267,7 @@ int Statistics::run()
 				}
 				if (!force_until && j > 25)
 				{
-					WLOG("Statistics::run(%s) -> can't find recentst day");
+					WLOG("Statistics::run(%s) -> can't find recentst day", codes[i].c_str());
 					break;
 				}	
 				recentst_day = utils::dec_day(recentst_day);
@@ -277,15 +284,16 @@ int Statistics::run()
 
 			last_stamps[codes[i]].first = recentst_day;
 			last_stamps[codes[i]].second = recentst_time;
+			DLOG("Statistics::run(%s) -> last_stamp %08d %06d", codes[i].c_str(), recentst_day, recentst_time);
 		}
-		ILOG("Statistics::run(%s) -> done for now (last_stamps.size(): %d, newfeeds: %d)",
+		ILOG("Statistics::run() -> done for now (last_stamps.size(): %d, newfeeds: %d)",
 				last_stamps.size(), newfeeds);
 		pthread_mutex_lock(&mtx);
 		while (!newfeeds)
 			pthread_cond_wait(&cond, &mtx);
 		newfeeds = 0;
 		pthread_mutex_unlock(&mtx);
-	} 
+	}
 
 	return 0;
 }

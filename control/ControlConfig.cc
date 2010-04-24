@@ -52,7 +52,7 @@ void ControlConfig::init(int argc, char *argv[])
 {
     init_pre(argc, argv);
 
-    std::string xp_value, key = "/ccltor_config";
+    std::string xp_value, key = "/ccltor_control";
     XPathConfig xpconf(cfg_fname.c_str());
 
 	init_post(xpconf, key.c_str(), argc, argv);
