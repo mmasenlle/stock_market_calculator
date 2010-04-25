@@ -86,6 +86,9 @@ Wed Apr 21 23:38:43 CEST 2010
   +Load plugins as shared libraries
   +Create a thread/process for them (try to use clone)
  -Program a plugin test
+Comments: the plugin is load as shared library and the process is clone for
+each. A test and the statistics process are done. The notifications,
+internally and with others needs to be worked better.
 
 
 
