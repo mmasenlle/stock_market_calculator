@@ -1,6 +1,7 @@
 
 #include <time.h>
 #include <signal.h>
+#include <math.h>
 #include <stdlib.h>
 #include "utils.h"
 
@@ -40,6 +41,12 @@ int utils::dec_day(int day)
 			day++;
 	}
 	return day;
+}
+
+bool utils::equald(double a, double b)
+{
+#define EQUALD_PRECISION 1e-12
+	return (a == b || fabs(a - b) < fabs(a * EQUALD_PRECISION));
 }
 
 int utils::nohup()

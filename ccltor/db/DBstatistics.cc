@@ -25,10 +25,10 @@ int DBstatistics::insert_day(const char *value, int yyyymmdd,
 	}
 	snprintf(buffer, sizeof(buffer),
 			"UPDATE statistics_of_day SET cnt_price = %d, cnt_volume = %d, cnt_capital = %d, "
-			"min_price = %E, min_volume = %E, min_capital = %E, "
-			"mean_price = %E, mean_volume = %E, mean_capital = %E, "
-			"max_price = %E, max_volume = %E, max_capital = %E, "
-			"std_price = %E, std_volume = %E, std_capital = %E WHERE value = '%s' AND date = '%08d';",
+			"min_price = %.15G, min_volume = %.15G, min_capital = %.15G, "
+			"mean_price = %.15G, mean_volume = %.15G, mean_capital = %.15G, "
+			"max_price = %.15G, max_volume = %.15G, max_capital = %.15G, "
+			"std_price = %.15G, std_volume = %.15G, std_capital = %.15G WHERE value = '%s' AND date = '%08d';",
 			cnt_price, cnt_volume, cnt_capital,	min_price, min_volume, min_capital,
 			mean_price, mean_volume, mean_capital, max_price, max_volume, max_capital,
 			std_price, std_volume, std_capital, value, yyyymmdd);
@@ -61,10 +61,10 @@ int DBstatistics::insert_month(const char *value, int yyyymmdd,
 	}
 	snprintf(buffer, sizeof(buffer),
 			"UPDATE statistics_of_month SET cnt_price = %d, cnt_volume = %d, cnt_capital = %d, "
-			"min_price = %E, min_volume = %E, min_capital = %E, "
-			"mean_price = %E, mean_volume = %E, mean_capital = %E, "
-			"max_price = %E, max_volume = %E, max_capital = %E, "
-			"std_price = %E, std_volume = %E, std_capital = %E WHERE value = '%s' AND date = '%08d';",
+			"min_price = %.15G, min_volume = %.15G, min_capital = %.15G, "
+			"mean_price = %.15G, mean_volume = %.15G, mean_capital = %.15G, "
+			"max_price = %.15G, max_volume = %.15G, max_capital = %.15G, "
+			"std_price = %.15G, std_volume = %.15G, std_capital = %.15G WHERE value = '%s' AND date = '%08d';",
 			cnt_price, cnt_volume, cnt_capital,	min_price, min_volume, min_capital,
 			mean_price, mean_volume, mean_capital, max_price, max_volume, max_capital,
 			std_price, std_volume, std_capital, value, yyyymmdd);
@@ -97,10 +97,10 @@ int DBstatistics::insert_year(const char *value, int yyyymmdd,
 	}
 	snprintf(buffer, sizeof(buffer),
 			"UPDATE statistics_of_year SET cnt_price = %d, cnt_volume = %d, cnt_capital = %d, "
-			"min_price = %E, min_volume = %E, min_capital = %E, "
-			"mean_price = %E, mean_volume = %E, mean_capital = %E, "
-			"max_price = %E, max_volume = %E, max_capital = %E, "
-			"std_price = %E, std_volume = %E, std_capital = %E WHERE value = '%s' AND date = '%08d';",
+			"min_price = %.15G, min_volume = %.15G, min_capital = %.15G, "
+			"mean_price = %.15G, mean_volume = %.15G, mean_capital = %.15G, "
+			"max_price = %.15G, max_volume = %.15G, max_capital = %.15G, "
+			"std_price = %.15G, std_volume = %.15G, std_capital = %.15G WHERE value = '%s' AND date = '%08d';",
 			cnt_price, cnt_volume, cnt_capital,	min_price, min_volume, min_capital,
 			mean_price, mean_volume, mean_capital, max_price, max_volume, max_capital,
 			std_price, std_volume, std_capital, value, yyyymmdd);

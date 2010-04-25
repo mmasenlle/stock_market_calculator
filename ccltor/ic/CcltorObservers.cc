@@ -4,6 +4,7 @@
 
 void CcltorObservers::add(const ICPeer *observer, const ICRegistration *reg)
 {
+	DLOG("CcltorICObservers::add(0x%08x:%d, %d)", observer->get_ip(), observer->get_port(), reg->getSeconds());
 	observers[*observer] = reg->getSeconds() > 0 ? (time(NULL) + reg->getSeconds()) : 0;
 }
 

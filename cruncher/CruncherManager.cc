@@ -1,6 +1,7 @@
 
 #include <poll.h>
 #include <dlfcn.h>
+#include "utils.h"
 #include "logger.h"
 #include "ICRegistration.h"
 #include "ICEvent2.h"
@@ -11,7 +12,7 @@ int CruncherManager::observe(int event)
 {
 	DLOG("CruncherManager::observe(%d) -> pid: %d", event, getpid());
 	pthread_mutex_lock(&manager_mtx);
-	observers[getpid()].insert(event);
+	observers[event].insert(getpid());
 	pthread_mutex_unlock(&manager_mtx);
 	return 0;
 }
@@ -44,6 +45,10 @@ void CruncherManager::init()
 	{
 		ELOG("CruncherManager::init() -> pthread_mutex_init(manager): %d", r);
 		return;
+	}
+	if ((r = utils::nohup()) < 0)
+	{
+		SELOG("CruncherManager::init() -> utils::nohup(): %d", r);
 	}
 	if (ic.init(config.ic_port) == -1)
 	{
@@ -159,7 +164,7 @@ void CruncherManager::handleIC()
 	}
 }
 
-#define CRUNCHERMANAGER_WAITTIME 1000000
+#define CRUNCHERMANAGER_WAITTIME 500000
 
 void CruncherManager::run()
 {
@@ -183,9 +188,10 @@ void CruncherManager::run()
 		}
 		else // FIXME: do it more intelligently
 		{
+			DLOG("CruncherManager::run() -> nothing happened in the last %d ms", CRUNCHERMANAGER_WAITTIME);
 			if (observers.find(ICEVENT_FEEDER_NEWFEED) != observers.end())
 			{
-				ICRegistration registration(CRUNCHERMANAGER_WAITTIME * 10);
+				ICRegistration registration(CRUNCHERMANAGER_WAITTIME);
 			    for (int i = 0; i < config.feeders.size(); i++)
 			    {
 			    	if (registration.send(&ic, &config.feeders[i]) <= 0)

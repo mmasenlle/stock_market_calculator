@@ -103,7 +103,7 @@ void Statistics::calculate_days(const char *cod, int start)
 			{
 				std::vector<double> d;
 				dbstatistics.get_day(cod, j, k, day, day, &d, NULL);
-				the_same = (d.size() == 1 && r[j][k] == d[0]);
+				the_same = (d.size() == 1 && utils::equald(r[j][k], d[0]));
 			}
 		}
 		if (the_same)
@@ -168,7 +168,7 @@ void Statistics::calculate_months(const char *cod, int start)
 			{
 				std::vector<double> d;
 				dbstatistics.get_month(cod, j, k, first_mday, first_mday, &d, NULL);
-				the_same = (d.size() == 1 && r[j][k] == d[0]);
+				the_same = (d.size() == 1 && utils::equald(r[j][k], d[0]));
 			}
 		}
 		if (the_same)
@@ -223,7 +223,7 @@ void Statistics::calculate_years(const char *cod, int start)
 			{
 				std::vector<double> d;
 				dbstatistics.get_year(cod, j, k, first_yday, first_yday, &d, NULL);
-				the_same = (d.size() == 1 && r[j][k] == d[0]);
+				the_same = (d.size() == 1 && utils::equald(r[j][k], d[0]));
 			}
 		}
 		if (the_same)
@@ -306,7 +306,7 @@ int Statistics::msg(ICMsg *msg)
 		newfeeds++;
 		pthread_cond_broadcast(&cond);
 		pthread_mutex_unlock(&mtx);
-		ILOG("Statistics::msg() -> ICEVENT_FEEDER_NEWFEED (%d)", newfeeds);
+		DLOG("Statistics::msg() -> ICEVENT_FEEDER_NEWFEED (%d)", newfeeds);
 	}
 	return 0;
 }

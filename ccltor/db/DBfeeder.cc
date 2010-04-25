@@ -63,13 +63,13 @@ int DBfeeder::insert_value(const char *code, const char *name,
 	{
 		snprintf(buffer, sizeof(buffer),
 				"INSERT INTO feeder_prices (value, time, price, volume, capital) "
-				"VALUES ('%s', '%06d', %E, %E, %E);",
+				"VALUES ('%s', '%06d', %.15G, %.15G, %.15G);",
 				code, hhmmss, price, volume, capital);
 	}
 	else
 	{
 		snprintf(buffer, sizeof(buffer),
-				"EXECUTE insert_price('%s', '%06d', %E, %E, %E);",
+				"EXECUTE insert_price('%s', '%06d', %.15G, %.15G, %.15G);",
 				code, hhmmss, price, volume, capital);
 	}
 	PGresult *r = mdb->exec_sql(buffer);

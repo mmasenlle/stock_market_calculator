@@ -9,6 +9,8 @@ namespace utils
 	int today();
 	int dec_day(int day);
 
+	bool equald(double a, double b);
+
 	int nohup();
 }
 
