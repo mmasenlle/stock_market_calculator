@@ -91,4 +91,14 @@ each. A test and the statistics process are done. The notifications,
 internally and with others needs to be worked better.
 
 
+Wed Apr 28 18:39:29 CEST 2010
+ Output I (Chart second iteration)
+----------------------------------
+ -Port/rework chart to a task called output
+  +Use get data adapted to the new db interfaces
+  +Add the ability to handle different front ends
+ -Add a stub frontend to output html tables
+ -Port the chart to use gnuplot instead of opengl
+  +Add more titles, labels, and so forth, than in the opengl version
+
 
