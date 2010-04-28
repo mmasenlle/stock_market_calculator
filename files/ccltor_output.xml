@@ -1,14 +1,17 @@
 <!-- ccltor_chart configuration file example -->
-<ccltor_chart>
-    <type>normal</type>
+<ccltor_output>
+    <type>all</type>
     <item>price</item>
     <value>M.BBVA</value>
     <day_start>20000101</day_start>
     <time_start>0</time_start>
     <day_end>20500101</day_end>
     <time_end>235959</time_end>
+    <output_mode>png</output_mode>
+    <output_fname>output.dat</output_fname>
+    <tmp_path>.</tmp_path>
     <ic_port>17200</ic_port>
     <log_level>5</log_level>
     <log_fname>_</log_fname>
-</ccltor_chart>
+</ccltor_output>
 
