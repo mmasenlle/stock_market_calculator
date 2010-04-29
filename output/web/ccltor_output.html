@@ -1,0 +1,49 @@
+<html>
+ <head>
+  <title>CCLTOR OUTPUT</title>
+ </head>
+ <body>
+  <h1>CCLTOR OUTPUT</h1>
+<form action="ccltor_output.php" method="post">
+<p>
+ Value: <input type="text" name="value" />
+ Item: <select name="item">
+        <option value="price">price</option>
+        <option value="volume">volume</option>
+        <option value="capital">capital</option>
+ </select>
+ Type: <select name="type">
+        <option value="all">all</option>
+        <option value="open">open</option>
+        <option value="close">close</option>
+        <option value="count">count</option>
+        <option value="min">min</option>
+        <option value="mean">mean</option>
+        <option value="max">max</option>
+        <option value="std">std</option>
+        <option value="mcount">month count</option>
+        <option value="mmin">month min</option>
+        <option value="mmean">month mean</option>
+        <option value="mmax">month max</option>
+        <option value="mstd">month std</option>
+        <option value="ycount">year count</option>
+        <option value="ymin">year min</option>
+        <option value="ymean">year mean</option>
+        <option value="ymax">year max</option>
+        <option value="ystd">year std</option>
+ </select>
+</p>
+<p>
+ Start day: <input type="text" name="day_start" />
+ Start time: <input type="text" name="time_start" />
+ End day: <input type="text" name="day_end" />
+ End time: <input type="text" name="time_end" />
+</p>
+ <p>Mode: <select name="mode">
+        <option value="png">chart</option>
+        <option value="html">table</option>
+ </select>
+ <p><input type="submit" /></p>
+</form>
+ </body>
+</html>

@@ -16,6 +16,7 @@ $(objects): %.o: %.cc
 
 install:
 	cp $(TARGET) $(INSTALL_DIR)/$(TARGET)
+	cp -R web $(INSTALL_DIR)/
 
 clean:
 	rm -f *.o $(TARGET)
