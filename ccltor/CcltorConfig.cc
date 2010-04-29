@@ -86,7 +86,7 @@ void CcltorConfig::init_post(const XPathConfig &xpc, const char *key, int argc, 
     if (log_level >= 0 && log_fname.length())
     {
         INIT_DEFAULT_LOGGER(
-            log_fname[0] == '_' ? NULL : log_fname.c_str(),
+            log_fname[0] == '-' ? NULL : log_fname.c_str(),
             log_level);
     }
 }

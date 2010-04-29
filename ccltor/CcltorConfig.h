@@ -23,7 +23,7 @@ public:
 
 #define FOR_OPT_ARG(_argc, _argv) \
     for (int _i = 1; _i < _argc; _i++) {\
-        if(_argv[_i][0] == '-' && (_i + 1) < _argc && _argv[_i + 1][0] != '-') {\
+        if(_argv[_i][0] == '-' && (_i + 1) < _argc) {\
             const char *arg = _argv[_i + 1]; \
             switch(_argv[_i++][1])
 
