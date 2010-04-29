@@ -12,7 +12,7 @@ void Table::output(const std::vector<double> *data,
 		const std::vector<int> *dates, const std::vector<int> *times)
 {
 	FILE *f = stdout;
-	if (config->output_fname.length() && config->output_fname[0] != '_')
+	if (config->output_fname.length() && config->output_fname[0] != '-')
 		f = fopen(config->output_fname.c_str(), "w");
 	if (!f)
 	{

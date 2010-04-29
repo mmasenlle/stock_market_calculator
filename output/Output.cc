@@ -22,6 +22,41 @@ void Output::get_data(std::vector<double> *data, std::vector<int> *dates, std::v
 		dbfeeder.get_value_data(config.value.c_str(), config.item - OUTPITEM_PRICE + FEEDER_DATAITEM_PRICE,
 						config.day_start, config.time_start, config.day_end, config.time_end,
 						data, dates, times);
+		if (config.type != OUTPTYPE_ALL)
+		{
+			std::vector<double> ldata; std::vector<int> ldates, ltimes;
+			if (config.type == OUTPTYPE_OPEN)
+			{
+				for (int i = 0; i < data->size(); i++)
+				{
+					if (!ldates.size() || dates->at(i) != ldates.back())
+					{
+						ldata.push_back(data->at(i));
+						ldates.push_back(dates->at(i));
+						ltimes.push_back(times->at(i));
+					}
+				}
+			}
+			else if (config.type == OUTPTYPE_CLOSE)
+			{
+				double v; int d = dates->size() ? dates->front() : 0, t;
+				for (int i = 0; i < data->size(); i++)
+				{
+					if (dates->at(i) != d)
+					{
+						ldata.push_back(v);
+						ldates.push_back(d);
+						ltimes.push_back(t);
+					}
+					v = data->at(i);
+					d = dates->at(i);
+					t = times->at(i);
+				}
+			}
+			*data = ldata;
+			*dates = ldates;
+			*times = ltimes;
+		}
 		break;
 	case OUTPTYPE_COUNT: case OUTPTYPE_MIN: case OUTPTYPE_MEAN: case OUTPTYPE_MAX: case OUTPTYPE_STD:
 		dbstatistics.get_day(config.value.c_str(), config.item - OUTPITEM_PRICE + STATISTICS_ITEM_PRICE,

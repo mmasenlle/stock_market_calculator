@@ -107,8 +107,12 @@ void OutputConfig::init(int argc, char *argv[])
     }
     END_OPT;
     
-    if (day_start == 0) // zero means today
-		day_start = utils::today();
+    if (day_start > -50 && day_start <= 0) // zero means today
+    {
+    	int i = day_start;
+    	day_start = utils::today();
+    	while (i++) day_start = utils::dec_day(day_start);
+    }
 
     DLOG("OutputConfig::init() type = %d-%s", type, getType());
     DLOG("OutputConfig::init() item = %d-%s", item, getItem());
