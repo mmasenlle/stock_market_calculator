@@ -8,6 +8,6 @@
     <time_stop>17:30</time_stop>
     <ic_port>17100</ic_port>
     <log_level>5</log_level>
-    <log_fname>_</log_fname>
+    <log_fname>-</log_fname>
 </ccltor_feeder>
 

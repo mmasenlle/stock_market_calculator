@@ -12,6 +12,6 @@
     <tmp_path>.</tmp_path>
     <ic_port>17200</ic_port>
     <log_level>5</log_level>
-    <log_fname>_</log_fname>
+    <log_fname>-</log_fname>
 </ccltor_output>
 
