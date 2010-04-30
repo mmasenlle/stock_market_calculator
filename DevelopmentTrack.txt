@@ -102,3 +102,9 @@ Wed Apr 28 18:39:29 CEST 2010
   +Add more titles, labels, and so forth, than in the opengl version
 
 
+Fri Apr 30 22:24:25 CEST 2010
+ Research in real calculations
+-------------------------------
+ -Bibliography revision about indicators
+ -Think of a simple real world calculation that could be implemented
+
