@@ -1,18 +1,19 @@
 <html>
  <head>
-  <title>CCLTOR OUTPUT</title>
+  <title>CALCULINATOR OUTPUT REQUEST</title>
  </head>
  <body>
-  <h1>CCLTOR OUTPUT</h1>
+  <h3>CALCULINATOR OUTPUT REQUEST</h3>
 <form action="ccltor_output.php" method="post">
-<p>
- Value: <input type="text" name="value" />
- Item: <select name="item">
+<table>
+<tr><td>Value:</td><td><input type="text" name="value" size="8" value="M.BBVA" /></td>
+<td>&nbsp;</td><td>&nbsp;</td></tr>
+<tr><td>Item:</td><td><select name="item">
         <option value="price">price</option>
         <option value="volume">volume</option>
         <option value="capital">capital</option>
- </select>
- Type: <select name="type">
+</select></td>
+<td>&nbsp;Type:</td><td><select name="type">
         <option value="all">all</option>
         <option value="open">open</option>
         <option value="close">close</option>
@@ -31,19 +32,16 @@
         <option value="ymean">year mean</option>
         <option value="ymax">year max</option>
         <option value="ystd">year std</option>
- </select>
-</p>
-<p>
- Start day: <input type="text" name="day_start" />
- Start time: <input type="text" name="time_start" />
- End day: <input type="text" name="day_end" />
- End time: <input type="text" name="time_end" />
-</p>
- <p>Mode: <select name="mode">
+</select></td></tr>
+<tr><td>Start day:</td><td><input type="text" name="day_start" size="10" value="0" /></td>
+<td>&nbsp;&nbsp;time:</td><td><input type="text" name="time_start" size="10" value="0" /></td></tr>
+<tr><td>End day:</td><td><input type="text" name="day_end" size="10" value="0" /></td>
+<td>&nbsp;&nbsp;time:</td><td><input type="text" name="time_end" size="10" value="0" /></td></tr>
+<tr><td>Output:</td><td><select name="mode">
         <option value="png">chart</option>
         <option value="html">table</option>
- </select>
- <p><input type="submit" /></p>
+</select></td><td>&nbsp;</td>
+<td><input type="submit" /></td></tr>
 </form>
  </body>
 </html>

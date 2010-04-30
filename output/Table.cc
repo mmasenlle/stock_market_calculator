@@ -19,17 +19,17 @@ void Table::output(const std::vector<double> *data,
 		SELOG("Table::ouput() -> fopen(%s)", config->output_fname.c_str());
 		return;
 	}
-	fprintf(f, "<h1>%s</h1>\n", config->value.c_str());
-	fprintf(f, "<h2>%s of %s</h2>\n", config->getType(), config->getItem());
-	fprintf(f, "<h3>from %08d %06d to %08d %06d</h3>\n",
-			config->day_start, config->time_start, config->day_end, config->time_end);
-	fprintf(f, "<table>\n<tr><td>DATA</td><td>DATE</td><td>TIME</td></tr>\n");
+	fprintf(f, "<h2>%s</h2>\n", config->value.c_str());
+	fprintf(f, "<h3>%s of %s</h3>\n", config->getType(), config->getItem());
+	fprintf(f, "<table>\n<tr><th>DAY</th><th>TIME</th><th>VALUE</th></tr>\n");
 	for (int i = 0; i < data->size(); i++)
 	{
-		fprintf(f, "<tr><td>%f</td>", data->at(i));
+		fprintf(f, "<tr>");
 		if (dates && i < dates->size()) fprintf(f, "<td>%08d</td>", dates->at(i));
+		else fprintf(f, "<td>&nbsp;</td>");
 		if (times && i < times->size()) fprintf(f, "<td>%06d</td>", times->at(i));
-		fprintf(f, "</tr>\n", data->at(i));
+		else fprintf(f, "<td>&nbsp;</td>");
+		fprintf(f, "<td>%f</td></tr>\n", data->at(i));
 	}
 	fprintf(f, "</table>\n\n");
 	if (f != stdout)

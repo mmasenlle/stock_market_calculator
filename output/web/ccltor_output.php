@@ -1,9 +1,32 @@
 <html>
  <head>
-  <title>CCLTOR OUTPUT</title>
+  <title>CALCULINATOR OUTPUT RESULTS</title>
+  <meta HTTP-EQUIV="PRAGMA" CONTENT="NO-CACHE">
+  <meta HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE,NO-STORE,MUST-REVALIDATE">
+  <style type="text/css">
+body {
+        max-width: 600px;
+}
+tr {
+        background: #FCFDFC;
+        padding: 3px;
+        font-size: 14px;
+}
+tr th {
+        background: #93AFCF;
+        color: #FFFFFF;
+        font-weight: bold;
+}
+table {
+        width: 90%;
+        max-width: 100%;
+        padding: 2px;
+        text-align: center;
+}
+</style>
  </head>
  <body>
-  <h1>CCLTOR OUTPUT</h1>
+  <div align="center">
 <?php
 $cmd = "../ccltor_output -l tmp/output_web.log -P tmp -o " . $_POST['mode'];
 if ($_POST['mode'] == 'png')
@@ -19,5 +42,6 @@ if ($_POST['mode'] == 'png')
 	echo '<img src="tmp/chart.png" />';
 
 ?>
+</div>
  </body>
 </html>
