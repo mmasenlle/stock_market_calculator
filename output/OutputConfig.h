@@ -1,6 +1,7 @@
 #ifndef _OUTPUTCONFIG_H_
 #define _OUTPUTCONFIG_H_
 
+#include <vector>
 #include "CcltorConfig.h"
 
 enum
@@ -23,6 +24,15 @@ enum
 	OUTPTYPE_YMEAN,
 	OUTPTYPE_YMAX,
 	OUTPTYPE_YSTD,
+	OUTPTYPE_P,
+	OUTPTYPE_R1,
+	OUTPTYPE_S1,
+	OUTPTYPE_R2,
+	OUTPTYPE_S2,
+	OUTPTYPE_R3,
+	OUTPTYPE_S3,
+	OUTPTYPE_R4,
+	OUTPTYPE_S4,
 	
 	LAST_OUTPTYPE
 };
@@ -45,19 +55,27 @@ enum
 	LAST_OUTPMODE
 };
 
+struct OutpDesc
+{
+	int type, item;
+	int day_start, time_start;
+	int day_end, time_end;
+	std::string value;
+};
+
 class OutputConfig : public CcltorConfig
 {
     void print_help();
     
-    void setType(const char *type);
-    void setItem(const char *item);
+    void setType(const char *type, OutpDesc *odesc);
+    void setItem(const char *item, OutpDesc *odesc);
     void setOMode(const char *mode);
+    
+    void setOutpDescs(const char *multiple);
 
 public:
-	int type, item;
-    int day_start, time_start;
-    int day_end, time_end;
-    std::string value;
+    OutpDesc outpdesc;
+    std::vector<OutpDesc> outpdescs;
     
     int output_mode;
     std::string output_fname;

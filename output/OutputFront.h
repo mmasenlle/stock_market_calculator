@@ -5,8 +5,8 @@
 
 struct OutputFront
 {
-	virtual void output(const std::vector<double> *data,
-			const std::vector<int> *dates, const std::vector<int> *times) = 0;
+	virtual void output(const std::vector<int> t[2],
+			const std::vector<std::vector<double> > *X) = 0;
 	virtual ~OutputFront() {};
 };
 

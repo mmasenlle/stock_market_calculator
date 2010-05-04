@@ -9,8 +9,8 @@ class Table : public OutputFront
 	const OutputConfig *config;
 public:
 	Table(const OutputConfig *cfg);
-	void output(const std::vector<double> *data,
-			const std::vector<int> *dates, const std::vector<int> *times);
+	void output(const std::vector<int> t[2],
+			const std::vector<std::vector<double> > *X);
 };
 
 #endif
