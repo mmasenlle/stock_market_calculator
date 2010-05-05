@@ -84,7 +84,88 @@ void Output::get_data(const OutpDesc *desc, std::vector<double> *data, std::vect
 void Output::merge_data(const std::vector<int> times[2], const std::vector<double> *data,
 		std::vector<int> t[2], std::vector<std::vector<double> > *X)
 {
-	
+	DLOG("Output::merge_data(before)-> t[0].size: %d, t[1].size: %d, X->size: %d", t[0].size(), t[1].size(), X->size());
+	if (X->empty())
+	{
+		t[0] = times[0];
+		t[1] = times[1];
+		X->push_back(*data);
+	}
+	else if (data->size())
+	{
+		std::vector<int> tr[2];
+		std::vector<std::vector<double> > Xr;
+		Xr.resize(X->size() + 1);
+		for (int i = 0, j = 0; i < times[0].size() || j < t[0].size(); )
+		{
+#define MERGE_STEP(_t, _i) do { \
+	tr[0].push_back(_t[0][_i]); \
+	if (_i < _t[1].size()) \
+		tr[1].push_back(_t[1][_i]); \
+	else if (tr[1].size()) \
+		tr[1].push_back(tr[1].back()); \
+	for (int k = 0; k < X->size(); k++) \
+		Xr[k].push_back(j < X->at(k).size() ? X->at(k).at(j) : X->at(k).back()); \
+	Xr[X->size()].push_back(i < data->size() ? data->at(i) : data->back()); \
+	_i++; } while (0)
+
+			if (i >= times[0].size())
+			{
+				MERGE_STEP(t, j);
+			}
+			else if (j >= t[0].size())
+			{
+				MERGE_STEP(times, i);
+			}
+			else
+			{
+				if (t[0][j] < times[0][i])
+				{
+					MERGE_STEP(t, j);
+				}
+				else if (times[0][i] < t[0][j])
+				{
+					MERGE_STEP(times, i);
+				}
+				else
+				{
+					if (i >= times[1].size() && j < t[1].size())
+					{
+						MERGE_STEP(t, j);
+					}
+					else if (j >= t[1].size() && i < times[1].size())
+					{
+						MERGE_STEP(times, i);
+					}
+					else if (i >= times[1].size() && j >= t[1].size())
+					{
+						MERGE_STEP(t, j);
+						i++;
+					}
+					else //if (j < t[1].size() && i < times[1].size())
+					{
+						if (t[1][j] < times[1][i])
+						{
+							MERGE_STEP(t, j);
+						}
+						else if (times[0][i] < t[0][j])
+						{
+							MERGE_STEP(times, i);
+						}
+						else
+						{
+							MERGE_STEP(t, j);
+							i++;
+						}
+					}
+				}
+			}
+		}
+		t[0] = tr[0];
+		t[1] = tr[1];
+		*X = Xr;
+	}
+	DLOG("Output::merge_data(after)-> t[0].size: %d, t[1].size: %d, X->size: %d", t[0].size(), t[1].size(), X->size());
 }
 
 void Output::init()
