@@ -22,7 +22,7 @@ int DBtrends::insert(const char *value, int yyyymmdd,
 	}
 	snprintf(buffer, sizeof(buffer),
 			"UPDATE trends SET P = %.15G, R1 = %.15G, S1 = %.15G, "
-			"R2 = %.15G, S2 = %.15G, R3 = %.15G, S3 = %.15G, R4 = %.15G, S4 = %.15G, "
+			"R2 = %.15G, S2 = %.15G, R3 = %.15G, S3 = %.15G, R4 = %.15G, S4 = %.15G "
 			"WHERE value = '%s' AND date = '%08d';",
 			P, R1, S1, R2, S2, R3, S3, R4, S4, value, yyyymmdd);
 	if ((r = mdb->exec_sql(buffer)))
