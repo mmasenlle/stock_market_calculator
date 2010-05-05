@@ -131,7 +131,7 @@ int Trends::run()
 				}
 				if (!force_until && j > 25)
 				{
-					WLOG("Statistics::run(%s) -> can't find recentst day", codes[i].c_str());
+					WLOG("Trends::run(%s) -> can't find recentst day", codes[i].c_str());
 					break;
 				}	
 				recentst_day = utils::dec_day(recentst_day);
@@ -144,9 +144,9 @@ int Trends::run()
 			calculate(codes[i].c_str(), recentst_day);
 
 			last_stamps[codes[i]] == recentst_day;
-			DLOG("Statistics::run(%s) -> last_stamp %08d", codes[i].c_str(), recentst_day);
+			DLOG("Trends::run(%s) -> last_stamp %08d", codes[i].c_str(), recentst_day);
 		}
-		ILOG("Statistics::run() -> done for now (last_stamps.size(): %d, newfeeds: %d)",
+		ILOG("Trends::run() -> done for now (last_stamps.size(): %d, newfeeds: %d)",
 				last_stamps.size(), newfeeds);
 		pthread_mutex_lock(&mtx);
 		while (!newfeeds)
