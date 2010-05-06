@@ -73,11 +73,17 @@ void Output::get_data(const OutpDesc *desc, std::vector<double> *data, std::vect
 				desc->type - OUTPTYPE_YCOUNT + STATISTICS_STC_COUNT, desc->day_start, desc->day_end,
 				data, &times[0]);
 		break;
-	case OUTPTYPE_P ... OUTPTYPE_S4:
+	case OUTPTYPE_P ... OUTPTYPE_MF:
 		dbtrends.get(desc->value.c_str(), desc->type - OUTPTYPE_P + TRENDS_P,
 				desc->day_start, desc->day_end,
 				data, &times[0]);
 		break;
+	case OUTPTYPE_SMA ... OUTPTYPE_MFI:
+		dbtrends.get_acum(desc->value.c_str(), desc->type - OUTPTYPE_SMA + TRENDS_ACUM_SMA,
+				desc->day_start, desc->day_end,
+				data, &times[0]);
+		break;
+
 	}
 }
 

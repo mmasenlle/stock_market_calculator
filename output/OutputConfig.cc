@@ -5,7 +5,8 @@
 
 static const char *outp_types[] = { "all", "open", "close", "count", "min", "mean", "max", "std",
 		"mcount", "mmin", "mmean", "mmax", "mstd", "ycount", "ymin", "ymean", "ymax", "ystd",
-		"P", "R1", "S1", "R2", "S2", "R3", "S3", "R4", "S4", NULL };
+		"P", "R1", "S1", "R2", "S2", "R3", "S3", "R4", "S4", "MF",
+		"SMA", "MAD", "CCI", "ROC", "MFI", NULL };
 void OutputConfig::setType(const char *stype, OutpDesc *odesc)
 {
 	for (int i = 0; outp_types[i]; i++)
