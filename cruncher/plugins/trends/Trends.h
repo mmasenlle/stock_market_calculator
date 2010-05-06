@@ -19,6 +19,7 @@ class Trends : public ICruncher
 	int force_until;
 	
 	void calculate(const char *cod, int start);
+	void calculate_acum(const char *cod, int start);
 
 public:
 	int init(ICruncherManager *manager);
