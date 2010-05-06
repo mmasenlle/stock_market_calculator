@@ -117,6 +117,7 @@ void Trends::calculate_acum(const char *cod, int start)
 	int empty_days = 0;
 	int day_tail = start;
 	std::list<std::pair<double, double> > trend_tail;
+	std::list<int> empty_queue;
 	for (int day = start; force_until < day; day = utils::dec_day(day))
 	{
 		while (trend_tail.size() < TRENDACUM_N)
@@ -124,12 +125,14 @@ void Trends::calculate_acum(const char *cod, int start)
 			std::vector<double> P, MF;
 			dbtrends.get(cod, TRENDS_P, day_tail, day_tail, &P, NULL);
 			dbtrends.get(cod, TRENDS_MF, day_tail, day_tail, &MF, NULL);
-			day_tail = utils::dec_day(day_tail);
 			if (P.empty() || MF.empty())
 			{
+				empty_queue.push_back(day_tail);
+				day_tail = utils::dec_day(day_tail);
 				if (force_until < day_tail && ++empty_days > 15)
 				{
-					DLOG("Trends::calculate_acum(%s) -> %08d empty_days: %d, breaking ...", cod, day_tail, empty_days);
+					DLOG("Trends::calculate_acum(%s) -> %08d..%08d (%d,%d) breaking ...",
+					    cod, day_tail, day, empty_days, trend_tail.size());
 					if (trend_tail.size() > 1) break;
 					else return;
 				}
@@ -137,6 +140,12 @@ void Trends::calculate_acum(const char *cod, int start)
 			}
 			empty_days = 0;
 			trend_tail.push_back(std::make_pair<double, double>(P.front(), MF.front()));
+			day_tail = utils::dec_day(day_tail);
+		}
+		if (!empty_queue.empty() && empty_queue.front() == day)
+		{
+			empty_queue.pop_front();
+			continue;
 		}
 		double trends_acum[NR_TRENDS_ACUM];
 		memset(trends_acum, 0, sizeof(trends_acum));
