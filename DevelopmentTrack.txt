@@ -107,4 +107,10 @@ Fri Apr 30 22:24:25 CEST 2010
 -------------------------------
  -Bibliography revision about indicators
  -Think of a simple real world calculation that could be implemented
+Comments: a trends called cruncher plugin has been implemented. It calculates
+very simple trend values (pivot points, resistance and support values, moving
+averages, etc). Now there is the need to understand and be able to interpret
+the indicators and maybe calculate in the following days the matches of the guesses.
+
+
 
