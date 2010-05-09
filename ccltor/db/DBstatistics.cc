@@ -120,7 +120,7 @@ static const char *statistics_item_names[LAST_STATISTICS_STC][LAST_STATISTICS_IT
 		{ "std_price", "std_volume", "std_capital" },
 };
 static const char *statistics_get_sql_fmt =
-	"SELECT %s, date FROM %s WHERE value = '%s' AND date >= '%08d' AND date <= '%08d';";
+	"SELECT %s, date FROM %s WHERE value = '%s' AND date >= '%08d' AND date <= '%08d' ORDER BY date;";
 int DBstatistics::get_day(const char *value, int item, int stc, int yyyymmdd_start, int yyyymmdd_end,
 		std::vector<double> *data, std::vector<int> *days)
 {

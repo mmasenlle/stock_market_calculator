@@ -72,7 +72,7 @@ int DBtrends::get(const char *value, int trend, int yyyymmdd_start, int yyyymmdd
 		if (yyyymmdd_end < 20000101) yyyymmdd_end = 20500101;
 		char buffer[256];
 		snprintf(buffer, sizeof(buffer),
-				"SELECT %s, date FROM trends WHERE value = '%s' AND date >= '%08d' AND date <= '%08d';",
+				"SELECT %s, date FROM trends WHERE value = '%s' AND date >= '%08d' AND date <= '%08d' ORDER BY date;",
 				trends_trend_names[trend], value, yyyymmdd_start, yyyymmdd_end);
 		PGresult *r = mdb->exec_sql(buffer);
 		if (r)
@@ -110,7 +110,7 @@ int DBtrends::get_acum(const char *value, int trend, int yyyymmdd_start, int yyy
 		if (yyyymmdd_end < 20000101) yyyymmdd_end = 20500101;
 		char buffer[256];
 		snprintf(buffer, sizeof(buffer),
-				"SELECT %s, date FROM trends_acum WHERE value = '%s' AND date >= '%08d' AND date <= '%08d';",
+				"SELECT %s, date FROM trends_acum WHERE value = '%s' AND date >= '%08d' AND date <= '%08d' ORDER BY date;",
 				trends_acum_trend_names[trend], value, yyyymmdd_start, yyyymmdd_end);
 		PGresult *r = mdb->exec_sql(buffer);
 		if (r)
