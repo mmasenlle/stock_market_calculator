@@ -23,6 +23,7 @@ void Chart::output(const std::vector<int> t[2],
 		}
 		if (t[1].size())
 		{
+			int tcnt = 0;
 			int d = t[0].size() ? t[0].front() : 0;
 			int s = t[1].size() ? t[1].front() : 0;
 			for (int i = 0, j = 0; i < t[0].size(); i++)
@@ -35,8 +36,13 @@ void Chart::output(const std::vector<int> t[2],
 					int m = dt / 100;
 					dt -= (m * 100);
 					j += (((h * 60) + m) * 60) + dt;
+					tcnt++;
 				}
-				else j++;
+				else
+				{
+					if (tcnt < 10) j += 50000;
+					tcnt = 0;
+				}
 				d = t[0].at(i);
 				s = t[1].at(i);
 				fprintf(f, "%d", j);

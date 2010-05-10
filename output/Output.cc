@@ -135,15 +135,12 @@ void Output::merge_data(const std::vector<int> times[2], const std::vector<doubl
 				}
 				else
 				{
-					if (i >= times[1].size() && j < t[1].size())
-					{
-						MERGE_STEP(t, j);
-					}
-					else if (j >= t[1].size() && i < times[1].size())
+					if (j >= t[1].size() && i < times[1].size())
 					{
 						MERGE_STEP(times, i);
+						j++;
 					}
-					else if (i >= times[1].size() && j >= t[1].size())
+					else if (i >= times[1].size())
 					{
 						MERGE_STEP(t, j);
 						i++;
@@ -154,7 +151,7 @@ void Output::merge_data(const std::vector<int> times[2], const std::vector<doubl
 						{
 							MERGE_STEP(t, j);
 						}
-						else if (times[0][i] < t[0][j])
+						else if (times[1][i] < t[1][j])
 						{
 							MERGE_STEP(times, i);
 						}
