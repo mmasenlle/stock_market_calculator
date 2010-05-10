@@ -82,7 +82,8 @@ class OutputConfig : public CcltorConfig
 public:
     OutpDesc outpdesc;
     std::vector<OutpDesc> outpdescs;
-    
+
+	int normalize;
     int output_mode;
     std::string output_fname;
     std::string tmp_path;

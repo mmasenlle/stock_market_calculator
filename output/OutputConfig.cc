@@ -64,6 +64,7 @@ OutputConfig::OutputConfig()
 	output_mode = OUTPMODE_PLOT;
 	tmp_path = "/tmp";
     ic_port = 17200;
+	normalize = -1;
 }
 
 void OutputConfig::setOutpDescs(const char *multiple)
@@ -128,12 +129,19 @@ void OutputConfig::init(int argc, char *argv[])
     xpconf.getValue((key + "/value").c_str(), &outpdesc.value);
     if (xpconf.getValue((key + "/multiple").c_str(), &xp_value))
     	setOutpDescs(xp_value.c_str());
+	if (xpconf.getValue((key + "/normalize").c_str(), &xp_value))
+    	normalize = atoi(xp_value.c_str());
     
     if (xpconf.getValue((key + "/output_mode").c_str(), &xp_value))
     	setOMode(xp_value.c_str());
     xpconf.getValue((key + "/output_fname").c_str(), &output_fname);
     xpconf.getValue((key + "/tmp_path").c_str(), &tmp_path);
 
+	FOR_OPT(argc, argv)
+    {
+    case 'n': normalize = 0; break;
+	}
+	END_OPT;
     FOR_OPT_ARG(argc, argv)
     {
     case 's': outpdesc.day_start = utils::strtot(arg); break;
@@ -143,12 +151,12 @@ void OutputConfig::init(int argc, char *argv[])
     case 't': setType(arg, &outpdesc); break;
     case 'i': setItem(arg, &outpdesc); break;
     case 'V': outpdesc.value = arg; break;
+	case 'n': normalize = atoi(arg); break;
     case 'o': setOMode(arg); break;
     case 'O': output_fname = arg; break;
     case 'P': tmp_path = arg; break;
     }
     END_OPT;
-    
     if (outpdesc.day_start > -50 && outpdesc.day_start <= 0) // zero means today
     {
     	int i = outpdesc.day_start;
@@ -168,6 +176,7 @@ void OutputConfig::init(int argc, char *argv[])
     DLOG("OutputConfig::init() day_end = %08d", outpdesc.day_end);
     DLOG("OutputConfig::init() time_end = %06d", outpdesc.time_end);
     DLOG("OutputConfig::init() value = '%s'", outpdesc.value.c_str());
+	DLOG("OutputConfig::init() normalize = %d", normalize);
     DLOG("OutputConfig::init() output_mode = %d-%s", output_mode, outp_modes[output_mode]);
     DLOG("OutputConfig::init() output_fname = '%s'", output_fname.c_str());
     DLOG("OutputConfig::init() tmp_path = '%s'", tmp_path.c_str());
@@ -197,6 +206,7 @@ void OutputConfig::print_help()
     fprintf(stdout, "  -t <type>       Output data type\n");
     fprintf(stdout, "  -i <item>       Output data item\n");
     fprintf(stdout, "  -V <value>      Code of the value\n");
+	fprintf(stdout, "  -n [<value>]    Normalize values to the first one or value\n");
     fprintf(stdout, "  -o <mode>       Output mode\n");
     fprintf(stdout, "  -O <file>       Ouput file name\n");
     fprintf(stdout, "  -P <path>       Path for the temporal files\n");

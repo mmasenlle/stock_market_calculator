@@ -9,6 +9,7 @@
 
 class Output
 {
+	double normax;
 	OutputFront *front;
 	CcltorDB db;
 	DBfeeder dbfeeder;

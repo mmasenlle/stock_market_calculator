@@ -1,4 +1,4 @@
-
+#include <math.h>
 #include "logger.h"
 #include "Table.h"
 #include "Chart.h"
@@ -96,6 +96,20 @@ void Output::merge_data(const std::vector<int> times[2], const std::vector<doubl
 		t[0] = times[0];
 		t[1] = times[1];
 		X->push_back(*data);
+		if (config.normalize >= 0)
+		{
+			normax = 0.0;
+			for (int i = 0; i < data->size(); i++)
+				if (normax < fabs(data->at(i))) normax = fabs(data->at(i));
+		}
+		if (config.normalize > 0)
+		{
+			double K = config.normalize / normax;
+			for (int i = 0; i < X->front().size(); i++)
+				X->front()[i] *= K;
+			normax = config.normalize;
+		}
+		
 	}
 	else if (data->size())
 	{
@@ -163,6 +177,15 @@ void Output::merge_data(const std::vector<int> times[2], const std::vector<doubl
 					}
 				}
 			}
+		}
+		if (config.normalize >= 0)
+		{
+			double K = 0.0;
+			for (int i = 0; i < Xr[X->size()].size(); i++)
+				if (K < fabs(Xr[X->size()][i])) K = fabs(fabs(Xr[X->size()][i]));
+			K = normax / K;
+			for (int i = 0; i < Xr[X->size()].size(); i++)
+				Xr[X->size()][i] *= K;
 		}
 		t[0] = tr[0];
 		t[1] = tr[1];
