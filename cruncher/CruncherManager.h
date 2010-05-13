@@ -25,7 +25,8 @@ class CruncherManager : public ICruncherManager
 	std::map<int, Cruncher *> crunchers;
 	std::map<int, std::set<int> > observers;
 	
-	void handleIC();
+	void handle_msg(ICMsg *msg, ICPeer *from);
+	void handle_ic();
 	
 	static int cruncher_fn(void *);
 

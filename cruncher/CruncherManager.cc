@@ -19,7 +19,11 @@ int CruncherManager::observe(int event)
 
 int CruncherManager::send(ICMsg *msg, const ICPeer *peer)
 {
-	return msg->send(&ic, peer);
+	if (peer)
+		return msg->send(&ic, peer);
+
+	handle_msg(msg, NULL);
+	return 0;
 }
 
 int CruncherManager::cruncher_fn(void *arg)
@@ -103,63 +107,69 @@ plugin_error:
 	}
 }
 
-void CruncherManager::handleIC()
+void CruncherManager::handle_msg(ICMsg *msg, ICPeer *from)
+{
+	DLOG("CruncherManager::handle_msg(%d)", msg->getClass());
+	switch (msg->getClass())
+	{
+	case ICMSGCLASS_EVENT:
+	{
+		ICEvent *ev = (ICEvent *)msg;
+		ICEvent2 *ev2 = (ev->getEvent() > ICEVENT_EVENT2) ? (ICEvent2 *)ev : NULL;
+		switch (ev->getEvent())
+		{
+		case ICEVENT_CONTROL_RUNNING:
+			ILOG("CruncherManager::handle_msg(RUNNING:%d)", ev2->getSubEvent());
+			switch (ev2->getSubEvent())
+			{
+			case ICEVENT2_CONTROL_RUNNING_PING:
+			{
+				ICEvent2 ack(ICEVENT_CONTROL_RUNNING, ICEVENT2_CONTROL_RUNNING_ACK);
+				ack.send(&ic, from);
+				break;
+			}
+			case ICEVENT2_CONTROL_RUNNING_STOP:
+				exit(0);
+			case ICEVENT2_CONTROL_RUNNING_RECONNECT:
+				break;
+			}
+			break;
+		case ICEVENT_CONTROL_LOGLEVEL:
+			DLOG("CruncherManager::handle_msg(LOGLEVEL:%d)", ev2->getSubEvent());
+			SET_LOGGER_LEVEL(ev2->getSubEvent());
+			break;
+		default:
+			if (observers.find(ev->getEvent()) != observers.end())
+			{
+				for (std::set<int>::iterator i = observers[ev->getEvent()].begin();
+				i != observers[ev->getEvent()].end(); i++)
+				{
+					crunchers[*i]->cruncher->msg(ev);
+				}
+			}
+			else
+			{
+				WLOG("CruncherManager::handle_msg() -> unhandled event %d", ev->getEvent());
+			}
+		}
+		break;
+	}
+	default:
+		WLOG("CruncherManager::handle_msg() -> NOT expected msg class %d", msg->getClass());
+	}
+}
+
+void CruncherManager::handle_ic()
 {
 	ICPeer peer;
 	ICMsg *msg = NULL;
 	if (ic.receive(&msg, &peer) < 0)
 	{
-		SELOG("CruncherManager::handleIC() -> ic.receive()");
+		SELOG("CruncherManager::handle_ic() -> ic.receive()");
 	}
-	else if(msg)
+	else if (msg)
 	{
-		switch (msg->getClass())
-		{
-		case ICMSGCLASS_EVENT:
-		{
-			ICEvent *ev = (ICEvent *)msg;
-			ICEvent2 *ev2 = (ev->getEvent() > ICEVENT_EVENT2) ? (ICEvent2 *)ev : NULL;
-			switch (ev->getEvent())
-			{
-			case ICEVENT_CONTROL_RUNNING:
-				ILOG("CruncherManager::handleIC(RUNNING:%d)", ev2->getSubEvent());
-				switch (ev2->getSubEvent())
-				{
-				case ICEVENT2_CONTROL_RUNNING_PING:
-				{
-					ICEvent2 ack(ICEVENT_CONTROL_RUNNING, ICEVENT2_CONTROL_RUNNING_ACK);
-					ack.send(&ic, &peer);
-					break;
-				}
-				case ICEVENT2_CONTROL_RUNNING_STOP:
-					exit(0);
-				case ICEVENT2_CONTROL_RUNNING_RECONNECT:
-					break;
-				}
-				break;
-			case ICEVENT_CONTROL_LOGLEVEL:
-				DLOG("CruncherManager::handleIC(LOGLEVEL:%d)", ev2->getSubEvent());
-				SET_LOGGER_LEVEL(ev2->getSubEvent());
-				break;
-			default:
-				if (observers.find(ev->getEvent()) != observers.end())
-				{
-					for (std::set<int>::iterator i = observers[ev->getEvent()].begin();
-						i != observers[ev->getEvent()].end(); i++)
-					{
-						crunchers[*i]->cruncher->msg(ev);
-					}
-				}
-				else
-				{
-					WLOG("CruncherManager::handleIC() -> unhandled event %d", ev->getEvent());
-				}
-			}
-			break;
-		}
-		default:
-			WLOG("CruncherManager::handleIC() -> NOT expected msg class %d", msg->getClass());
-		}
+		handle_msg(msg, &peer);
 		delete msg;
 	}
 }
@@ -184,7 +194,7 @@ void CruncherManager::run()
 		}
 		else if (pfd.revents & POLLIN)
 		{
-			handleIC();
+			handle_ic();
 		}
 		else // FIXME: do it more intelligently
 		{
