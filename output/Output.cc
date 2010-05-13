@@ -18,57 +18,22 @@ void Output::get_data(const OutpDesc *desc, std::vector<double> *data, std::vect
 {
 	switch (desc->type)
 	{
-	case OUTPTYPE_ALL: case	OUTPTYPE_OPEN: case OUTPTYPE_CLOSE:
+	case OUTPTYPE_ALL:
 		dbfeeder.get_value_data(desc->value.c_str(), desc->item - OUTPITEM_PRICE + FEEDER_DATAITEM_PRICE,
 				desc->day_start, desc->time_start, desc->day_end, desc->time_end,
 				data, &times[0], &times[1]);
-		if (desc->type != OUTPTYPE_ALL)
-		{
-			std::vector<double> ldata; std::vector<int> ltimes[2];
-			if (desc->type == OUTPTYPE_OPEN)
-			{
-				for (int i = 0; i < data->size(); i++)
-				{
-					if (!ltimes[0].size() || times[0].at(i) != ltimes[0].back())
-					{
-						ldata.push_back(data->at(i));
-						ltimes[0].push_back(times[0].at(i));
-						ltimes[1].push_back(times[1].at(i));
-					}
-				}
-			}
-			else if (desc->type == OUTPTYPE_CLOSE)
-			{
-				double v; int d = times[0].size() ? times[0].front() : 0, t;
-				for (int i = 0; i < data->size(); i++)
-				{
-					if (times[0].at(i) != d)
-					{
-						ldata.push_back(v);
-						ltimes[0].push_back(d);
-						ltimes[1].push_back(t);
-					}
-					v = data->at(i);
-					d = times[0].at(i);
-					t = times[1].at(i);
-				}
-			}
-			*data = ldata;
-			times[0] = ltimes[0];
-			times[1] = ltimes[1];
-		}
 		break;
-	case OUTPTYPE_COUNT: case OUTPTYPE_MIN: case OUTPTYPE_MEAN: case OUTPTYPE_MAX: case OUTPTYPE_STD:
+	case OUTPTYPE_COUNT ... OUTPTYPE_STD:
 		dbstatistics.get_day(desc->value.c_str(), desc->item - OUTPITEM_PRICE + STATISTICS_ITEM_PRICE,
 				desc->type - OUTPTYPE_COUNT + STATISTICS_STC_COUNT, desc->day_start, desc->day_end,
 				data, &times[0]);
 		break;
-	case OUTPTYPE_MCOUNT: case OUTPTYPE_MMIN: case OUTPTYPE_MMEAN: case OUTPTYPE_MMAX: case OUTPTYPE_MSTD:
+	case OUTPTYPE_MCOUNT ... OUTPTYPE_MSTD:
 		dbstatistics.get_month(desc->value.c_str(), desc->item - OUTPITEM_PRICE + STATISTICS_ITEM_PRICE,
 				desc->type - OUTPTYPE_MCOUNT + STATISTICS_STC_COUNT, desc->day_start, desc->day_end,
 				data, &times[0]);
 		break;
-	case OUTPTYPE_YCOUNT: case OUTPTYPE_YMIN: case OUTPTYPE_YMEAN: case OUTPTYPE_YMAX: case OUTPTYPE_YSTD:
+	case OUTPTYPE_YCOUNT ... OUTPTYPE_YSTD:
 		dbstatistics.get_year(desc->value.c_str(), desc->item - OUTPITEM_PRICE + STATISTICS_ITEM_PRICE,
 				desc->type - OUTPTYPE_YCOUNT + STATISTICS_STC_COUNT, desc->day_start, desc->day_end,
 				data, &times[0]);
