@@ -5,8 +5,18 @@
 
 DBstatistics::DBstatistics(CcltorDB *db) : mdb(db) {}
 
+static const char *statistics_update_sql_fmt =
+	"UPDATE %s SET cnt_price = %d, cnt_volume = %d, cnt_capital = %d, "
+	"open_price = %.15G, open_volume = %.15G, open_capital = %.15G, "
+	"close_price = %.15G, close_volume = %.15G, close_capital = %.15G, "
+	"min_price = %.15G, min_volume = %.15G, min_capital = %.15G, "
+	"mean_price = %.15G, mean_volume = %.15G, mean_capital = %.15G, "
+	"max_price = %.15G, max_volume = %.15G, max_capital = %.15G, "
+	"std_price = %.15G, std_volume = %.15G, std_capital = %.15G WHERE value = '%s' AND date = '%08d';";
 int DBstatistics::insert_day(const char *value, int yyyymmdd,
 		int cnt_price, int cnt_volume, int cnt_capital,
+		double open_price, double open_volume, double open_capital,
+		double close_price, double close_volume, double close_capital,
 		double min_price, double min_volume, double min_capital,
 		double mean_price, double mean_volume, double mean_capital,
 		double max_price, double max_volume, double max_capital,
@@ -23,13 +33,9 @@ int DBstatistics::insert_day(const char *value, int yyyymmdd,
 		PQclear(r);
 		ret++;
 	}
-	snprintf(buffer, sizeof(buffer),
-			"UPDATE statistics_of_day SET cnt_price = %d, cnt_volume = %d, cnt_capital = %d, "
-			"min_price = %.15G, min_volume = %.15G, min_capital = %.15G, "
-			"mean_price = %.15G, mean_volume = %.15G, mean_capital = %.15G, "
-			"max_price = %.15G, max_volume = %.15G, max_capital = %.15G, "
-			"std_price = %.15G, std_volume = %.15G, std_capital = %.15G WHERE value = '%s' AND date = '%08d';",
-			cnt_price, cnt_volume, cnt_capital,	min_price, min_volume, min_capital,
+	snprintf(buffer, sizeof(buffer), statistics_update_sql_fmt, "statistics_of_day",
+			cnt_price, cnt_volume, cnt_capital,	open_price, open_volume, open_capital,
+			close_price, close_volume, close_capital, min_price, min_volume, min_capital,
 			mean_price, mean_volume, mean_capital, max_price, max_volume, max_capital,
 			std_price, std_volume, std_capital, value, yyyymmdd);
 	if ((r = mdb->exec_sql(buffer)))
@@ -42,6 +48,8 @@ int DBstatistics::insert_day(const char *value, int yyyymmdd,
 
 int DBstatistics::insert_month(const char *value, int yyyymmdd,
 		int cnt_price, int cnt_volume, int cnt_capital,
+		double open_price, double open_volume, double open_capital,
+		double close_price, double close_volume, double close_capital,
 		double min_price, double min_volume, double min_capital,
 		double mean_price, double mean_volume, double mean_capital,
 		double max_price, double max_volume, double max_capital,
@@ -59,13 +67,9 @@ int DBstatistics::insert_month(const char *value, int yyyymmdd,
 		PQclear(r);
 		ret++;
 	}
-	snprintf(buffer, sizeof(buffer),
-			"UPDATE statistics_of_month SET cnt_price = %d, cnt_volume = %d, cnt_capital = %d, "
-			"min_price = %.15G, min_volume = %.15G, min_capital = %.15G, "
-			"mean_price = %.15G, mean_volume = %.15G, mean_capital = %.15G, "
-			"max_price = %.15G, max_volume = %.15G, max_capital = %.15G, "
-			"std_price = %.15G, std_volume = %.15G, std_capital = %.15G WHERE value = '%s' AND date = '%08d';",
-			cnt_price, cnt_volume, cnt_capital,	min_price, min_volume, min_capital,
+	snprintf(buffer, sizeof(buffer), statistics_update_sql_fmt, "statistics_of_month",
+			cnt_price, cnt_volume, cnt_capital,	open_price, open_volume, open_capital,
+			close_price, close_volume, close_capital, min_price, min_volume, min_capital,
 			mean_price, mean_volume, mean_capital, max_price, max_volume, max_capital,
 			std_price, std_volume, std_capital, value, yyyymmdd);
 	if ((r = mdb->exec_sql(buffer)))
@@ -78,6 +82,8 @@ int DBstatistics::insert_month(const char *value, int yyyymmdd,
 
 int DBstatistics::insert_year(const char *value, int yyyymmdd,
 		int cnt_price, int cnt_volume, int cnt_capital,
+		double open_price, double open_volume, double open_capital,
+		double close_price, double close_volume, double close_capital,
 		double min_price, double min_volume, double min_capital,
 		double mean_price, double mean_volume, double mean_capital,
 		double max_price, double max_volume, double max_capital,
@@ -95,13 +101,9 @@ int DBstatistics::insert_year(const char *value, int yyyymmdd,
 		PQclear(r);
 		ret++;
 	}
-	snprintf(buffer, sizeof(buffer),
-			"UPDATE statistics_of_year SET cnt_price = %d, cnt_volume = %d, cnt_capital = %d, "
-			"min_price = %.15G, min_volume = %.15G, min_capital = %.15G, "
-			"mean_price = %.15G, mean_volume = %.15G, mean_capital = %.15G, "
-			"max_price = %.15G, max_volume = %.15G, max_capital = %.15G, "
-			"std_price = %.15G, std_volume = %.15G, std_capital = %.15G WHERE value = '%s' AND date = '%08d';",
-			cnt_price, cnt_volume, cnt_capital,	min_price, min_volume, min_capital,
+	snprintf(buffer, sizeof(buffer), statistics_update_sql_fmt, "statistics_of_year",
+			cnt_price, cnt_volume, cnt_capital,	open_price, open_volume, open_capital,
+			close_price, close_volume, close_capital, min_price, min_volume, min_capital,
 			mean_price, mean_volume, mean_capital, max_price, max_volume, max_capital,
 			std_price, std_volume, std_capital, value, yyyymmdd);
 	if ((r = mdb->exec_sql(buffer)))
@@ -114,6 +116,8 @@ int DBstatistics::insert_year(const char *value, int yyyymmdd,
 
 static const char *statistics_item_names[LAST_STATISTICS_STC][LAST_STATISTICS_ITEM] = {
 		{ "cnt_price", "cnt_volume", "cnt_capital" },
+		{ "open_price", "open_volume", "open_capital" },
+		{ "close_price", "close_volume", "close_capital" },
 		{ "min_price", "min_volume", "min_capital" },
 		{ "mean_price", "mean_volume", "mean_capital" },
 		{ "max_price", "max_volume", "max_capital" },

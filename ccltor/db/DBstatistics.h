@@ -12,6 +12,8 @@ enum {
 };
 enum {
 	STATISTICS_STC_COUNT,
+	STATISTICS_STC_OPEN,
+	STATISTICS_STC_CLOSE,
 	STATISTICS_STC_MIN,
 	STATISTICS_STC_MEAN,
 	STATISTICS_STC_MAX,
@@ -28,18 +30,24 @@ public:
 
 	int insert_day(const char *value, int yyyymmdd,
 			int cnt_price, int cnt_volume, int cnt_capital,
+			double open_price, double open_volume, double open_capital,
+			double close_price, double close_volume, double close_capital,
 			double min_price, double min_volume, double min_capital,
 			double mean_price, double mean_volume, double mean_capital,
 			double max_price, double max_volume, double max_capital,
 			double std_price, double std_volume, double std_capital);
 	int insert_month(const char *value, int yyyymmdd,
 			int cnt_price, int cnt_volume, int cnt_capital,
+			double open_price, double open_volume, double open_capital,
+			double close_price, double close_volume, double close_capital,
 			double min_price, double min_volume, double min_capital,
 			double mean_price, double mean_volume, double mean_capital,
 			double max_price, double max_volume, double max_capital,
 			double std_price, double std_volume, double std_capital);
 	int insert_year(const char *value, int yyyymmdd,
 			int cnt_price, int cnt_volume, int cnt_capital,
+			double open_price, double open_volume, double open_capital,
+			double close_price, double close_volume, double close_capital,
 			double min_price, double min_volume, double min_capital,
 			double mean_price, double mean_volume, double mean_capital,
 			double max_price, double max_volume, double max_capital,
