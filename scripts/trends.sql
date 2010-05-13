@@ -22,6 +22,7 @@ CREATE TABLE trends_acum (
 	MAD		double precision,
 	CCI		double precision,
 	ROC		double precision,
+	AD		double precision,
 	MFI		double precision,
 	PRIMARY KEY (value, date)
 );
