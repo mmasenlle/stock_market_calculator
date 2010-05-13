@@ -3,6 +3,7 @@
 
 #include "DBfeeder.h"
 #include "DBstatistics.h"
+#include "ICEvent.h"
 #include "ICruncher.h"
 
 class Statistics : public ICruncher
@@ -11,15 +12,16 @@ class Statistics : public ICruncher
 	CcltorDB db;
 	DBfeeder dbfeeder;
 	DBstatistics dbstatistics;
-	
-	int newfeeds;
+	ICEvent stcs_updated;
+
 	pthread_mutex_t mtx;
 	pthread_cond_t cond;
 
+	int newfeeds;
 	int force_until;
 	
 	int calculate(const std::vector<double> *data,
-			double *min, double *mean, double *max, double *std);
+			double *open, double *close, double *min, double *mean, double *max, double *std);
 	double meta_calculate(const std::vector<double> *data, int what);
 
 	void calculate_days(const char *cod, int start);
