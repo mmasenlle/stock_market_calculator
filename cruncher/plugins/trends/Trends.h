@@ -1,7 +1,7 @@
 #ifndef _TRENDS_H_
 #define _TRENDS_H_
 
-#include "DBfeeder.h"
+#include "DBstatistics.h"
 #include "DBtrends.h"
 #include "ICruncher.h"
 
@@ -9,10 +9,10 @@ class Trends : public ICruncher
 {
 	ICruncherManager *manager;
 	CcltorDB db;
-	DBfeeder dbfeeder;
+	DBstatistics dbstatistics;
 	DBtrends dbtrends;
 	
-	int newfeeds;
+	int stcs_updates;
 	pthread_mutex_t mtx;
 	pthread_cond_t cond;
 
