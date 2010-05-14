@@ -34,7 +34,7 @@ int DBtrends::insert(const char *value, int yyyymmdd,
 }
 
 int DBtrends::insert_acum(const char *value, int yyyymmdd,
-		double SMA, double MAD, double CCI, double ROC, double AD, double MFI)
+		double SMA, double MAD, double CCI, double ROC, double AD, double MFI, double OBV)
 {
 	int ret = 0;
 	char buffer[1024];
@@ -49,9 +49,9 @@ int DBtrends::insert_acum(const char *value, int yyyymmdd,
 	}
 	snprintf(buffer, sizeof(buffer),
 			"UPDATE trends_acum SET "
-			"SMA = %.15G, MAD = %.15G, CCI = %.15G, ROC = %.15G, AD = %.15G, MFI = %.15G "
+			"SMA = %.15G, MAD = %.15G, CCI = %.15G, ROC = %.15G, AD = %.15G, MFI = %.15G, OBV = %.15G "
 			"WHERE value = '%s' AND date = '%08d';",
-			SMA, MAD, CCI, ROC, AD, MFI, value, yyyymmdd);
+			SMA, MAD, CCI, ROC, AD, MFI, OBV, value, yyyymmdd);
 	if ((r = mdb->exec_sql(buffer)))
 	{
 		PQclear(r);
@@ -99,7 +99,7 @@ int DBtrends::get(const char *value, int trend, int yyyymmdd_start, int yyyymmdd
 	return ret;
 }
 
-static const char *trends_acum_trend_names[NR_TRENDS_ACUM] = { "SMA", "MAD", "CCI", "ROC", "AD", "MFI" };
+static const char *trends_acum_trend_names[NR_TRENDS_ACUM] = { "SMA", "MAD", "CCI", "ROC", "AD", "MFI", "OBV" };
 int DBtrends::get_acum(const char *value, int trend, int yyyymmdd_start, int yyyymmdd_end,
 			std::vector<double> *data, std::vector<int> *days)
 {
