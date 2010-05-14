@@ -113,4 +113,18 @@ averages, etc). Now there is the need to understand and be able to interpret
 the indicators and maybe calculate in the following days the matches of the guesses.
 
 
-
+Fri May 14 20:15:13 CEST 2010
+ DBCache debug and testing
+---------------------------
+Comments: It's been some work here and there. Most of all, the output task has
+now support for configuring and displaying multiple data; the open and close
+values has been passed to statistics tables, trends has winned two more values
+(ad and obv). The cruncher manager supports inter plugin messages and a new
+event (statistics updated) has been created. Other major addition is the
+DBCache in the cruncher manager. This cache's goal is to reduce accesses to
+the dbms. For now there is the need of a new connection to the db but with hope
+the accesses are going to be reduced.
+ -Update schemas of statistics and trends tables
+ -Test cruncher cache and plugins
+ -Try to fill the tables with correct data
+ -Test the improvements due to the cache
