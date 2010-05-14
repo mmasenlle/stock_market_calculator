@@ -4,6 +4,7 @@
 #include <math.h>
 #include "utils.h"
 #include "logger.h"
+#include "DBCache.h"
 #include "CruncherConfig.h"
 #include "Statistics.h"
 
@@ -14,7 +15,7 @@ extern "C" ICruncher * CRUNCHER_GETINSTANCE()
 
 Statistics::Statistics() : dbfeeder(&db), dbstatistics(&db), stcs_updated(ICEVENT_STATISTICS_UPDATED)
 {
-	newfeeds = 0;
+	newfeeds = 1;
 	int r = pthread_mutex_init(&mtx, NULL);
 	if (r != 0 || (r = pthread_cond_init(&cond, NULL)) != 0)
 	{
@@ -102,27 +103,16 @@ void Statistics::calculate_days(const char *cod, int start)
 			continue;
 		}
 		empty_days = 0;
-		bool the_same = true;
-		for (int j = 0; the_same && j < LAST_STATISTICS_ITEM; j++)
+		if (manager->cache->statistics__insert_day(cod, day, r))
 		{
-			for (int k = 0; the_same && k < LAST_STATISTICS_STC; k++)
-			{
-				std::vector<double> d;
-				dbstatistics.get_day(cod, j, k, day, day, &d, NULL);
-				the_same = (d.size() == 1 && utils::equald(r[j][k], d[0]));
-			}
+			ILOG("Statistics::calculate_days(%s) -> insert_day %08d", cod, day);
 		}
-		if (the_same)
+		else
 		{
 			if (force_until) continue;
 			DLOG("Statistics::calculate_days(%s) -> %08d same data, returning ...", cod, day);
 			return;
 		}
-		ILOG("Statistics::calculate_days(%s) -> insert_day %08d", cod, day);
-		dbstatistics.insert_day(cod, day, r[0][0], r[1][0], r[2][0],
-				r[0][1], r[1][1], r[2][1], r[0][2], r[1][2], r[2][2],
-				r[0][3], r[1][3], r[2][3], r[0][4], r[1][4], r[2][4],
-				r[0][5], r[1][5], r[2][5], r[0][6], r[1][6], r[2][6]);
 	}
 }
 
@@ -260,8 +250,14 @@ int Statistics::run()
 	
 	for (;;)
 	{
+		pthread_mutex_lock(&mtx);
+		while (!newfeeds)
+			pthread_cond_wait(&cond, &mtx);
+		newfeeds = 0;
+		pthread_mutex_unlock(&mtx);
+
 		std::vector<std::string> codes;
-		dbfeeder.get_value_codes(&codes);
+		manager->cache->feeder__get_value_codes(&codes);
 		for (int i = 0; i < codes.size(); i++)
 		{
 			int recentst_day = utils::today(), recentst_time = 0;
@@ -300,11 +296,6 @@ int Statistics::run()
 		manager->send(&stcs_updated, NULL);
 		ILOG("Statistics::run() -> done for now (last_stamps.size(): %d, newfeeds: %d)",
 				last_stamps.size(), newfeeds);
-		pthread_mutex_lock(&mtx);
-		while (!newfeeds)
-			pthread_cond_wait(&cond, &mtx);
-		newfeeds = 0;
-		pthread_mutex_unlock(&mtx);
 	}
 
 	return 0;

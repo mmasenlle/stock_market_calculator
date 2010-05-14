@@ -2,12 +2,14 @@
 #define _ICRUNCHER_H_
 
 class CruncherConfig;
+class DBCache;
 class ICMsg;
 class ICPeer;
 
 struct ICruncherManager
 {
 	CruncherConfig *ccfg;
+	DBCache *cache;
 	virtual int observe(int event) = 0;
 	virtual int send(ICMsg *msg, const ICPeer *peer) = 0;
 };

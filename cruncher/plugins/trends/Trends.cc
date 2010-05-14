@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "logger.h"
 #include "ICEvent.h"
+#include "DBCache.h"
 #include "CruncherConfig.h"
 #include "Trends.h"
 
@@ -14,9 +15,9 @@ extern "C" ICruncher * CRUNCHER_GETINSTANCE()
 	return new Trends;
 }
 
-Trends::Trends() : dbstatistics(&db), dbtrends(&db)
+Trends::Trends() : dbtrends(&db)
 {
-	stcs_updates = 0;
+	stcs_updates = 1;
 	int r = pthread_mutex_init(&mtx, NULL);
 	if (r != 0 || (r = pthread_cond_init(&cond, NULL)) != 0)
 	{
@@ -52,12 +53,11 @@ void Trends::calculate(const char *cod, int start)
 	int empty_days = 0;
 	for (int day = start; force_until < day; day = utils::dec_day(day))
 	{
-		std::vector<double> L, H, C, V;
-		dbstatistics.get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MIN, day, day, &L, NULL);
-		dbstatistics.get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MAX, day, day, &H, NULL);
-		dbstatistics.get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_CLOSE, day, day, &C, NULL);
-		dbstatistics.get_day(cod, STATISTICS_ITEM_VOLUME, STATISTICS_STC_CLOSE, day, day, &V, NULL);
-		if (L.empty() || H.empty() || C.empty() || V.empty())
+		double L, H, C, V;
+		if (!manager->cache->statistics__get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MIN, day, &L) ||
+			!manager->cache->statistics__get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MAX, day, &H) ||
+			!manager->cache->statistics__get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_CLOSE, day, &C) ||
+			!manager->cache->statistics__get_day(cod, STATISTICS_ITEM_VOLUME, STATISTICS_STC_CLOSE, day, &V))
 		{
 			if (!force_until && ++empty_days > 15)
 			{
@@ -68,32 +68,26 @@ void Trends::calculate(const char *cod, int start)
 		}
 		empty_days = 0;
 		double trends[NR_TRENDS];
-		trends[TRENDS_P] = (L[0] + H[0] + C[0]) / 3.0;
-		trends[TRENDS_R1] = (2 * trends[TRENDS_P]) - L[0];
-		trends[TRENDS_S1] = (2 * trends[TRENDS_P]) - H[0];
-		trends[TRENDS_R2] = trends[TRENDS_P] + (H[0] - L[0]);
-		trends[TRENDS_S2] = trends[TRENDS_P] - (H[0] - L[0]);
-		trends[TRENDS_R3] = trends[TRENDS_R2] + (H[0] - L[0]);
-		trends[TRENDS_S3] = trends[TRENDS_S2] - (H[0] - L[0]);
-		trends[TRENDS_R4] = trends[TRENDS_R3] + (H[0] - L[0]);
-		trends[TRENDS_S4] = trends[TRENDS_S3] - (H[0] - L[0]);
-		trends[TRENDS_MF] = trends[TRENDS_P] * V[0];
-		bool the_same = true;
-		for (int k = 0; the_same && k < NR_TRENDS; k++)
+		trends[TRENDS_P] = (L + H + C) / 3.0;
+		trends[TRENDS_R1] = (2 * trends[TRENDS_P]) - L;
+		trends[TRENDS_S1] = (2 * trends[TRENDS_P]) - H;
+		trends[TRENDS_R2] = trends[TRENDS_P] + (H - L);
+		trends[TRENDS_S2] = trends[TRENDS_P] - (H - L);
+		trends[TRENDS_R3] = trends[TRENDS_R2] + (H - L);
+		trends[TRENDS_S3] = trends[TRENDS_S2] - (H - L);
+		trends[TRENDS_R4] = trends[TRENDS_R3] + (H - L);
+		trends[TRENDS_S4] = trends[TRENDS_S3] - (H - L);
+		trends[TRENDS_MF] = trends[TRENDS_P] * V;
+		if (manager->cache->dbtrends__insert(cod, day, trends))
 		{
-			std::vector<double> d;
-			dbtrends.get(cod, k, day, day, &d, NULL);
-			the_same = (d.size() == 1 && utils::equald(trends[k], d[0]));
+			ILOG("Trends::calculate(%s) -> insert %08d", cod, day);
 		}
-		if (the_same)
+		else
 		{
 			if (force_until) continue;
 			DLOG("Trends::calculate(%s) -> %08d same data, returning ...", cod, day);
 			return;
 		}
-		ILOG("Trends::calculate(%s) -> insert %08d", cod, day);
-		dbtrends.insert(cod, day, trends[0], trends[1], trends[2],
-				trends[3], trends[4], trends[5], trends[6], trends[7], trends[8], trends[9]);
 	}
 }
 
@@ -122,14 +116,13 @@ void Trends::calculate_acum(const char *cod, int start)
 	{
 		while (trend_tail.size() < TRENDACUM_N)
 		{
-			std::vector<double> L, H, C, V, P, MF;
-			dbstatistics.get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MIN, day_tail, day_tail, &L, NULL);
-			dbstatistics.get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MAX, day_tail, day_tail, &H, NULL);
-			dbstatistics.get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_CLOSE, day_tail, day_tail, &C, NULL);
-			dbstatistics.get_day(cod, STATISTICS_ITEM_VOLUME, STATISTICS_STC_CLOSE, day_tail, day_tail, &V, NULL);
-			dbtrends.get(cod, TRENDS_P, day_tail, day_tail, &P, NULL);
-			dbtrends.get(cod, TRENDS_MF, day_tail, day_tail, &MF, NULL);
-			if (L.empty() || H.empty() || C.empty() || V.empty() || P.empty() || MF.empty())
+			double L, H, C, V, P, MF;
+			if (!manager->cache->statistics__get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MIN, day_tail, &L) ||
+				!manager->cache->statistics__get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MAX, day_tail, &H) ||
+				!manager->cache->statistics__get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_CLOSE, day_tail, &C) ||
+				!manager->cache->statistics__get_day(cod, STATISTICS_ITEM_VOLUME, STATISTICS_STC_CLOSE, day_tail, &V) ||
+				!manager->cache->dbtrends__get(cod, TRENDS_P, day_tail, &P) ||
+				!manager->cache->dbtrends__get(cod, TRENDS_MF, day_tail, &MF))
 			{
 				empty_queue.push_back(day_tail);
 				day_tail = utils::dec_day(day_tail);
@@ -143,7 +136,7 @@ void Trends::calculate_acum(const char *cod, int start)
 				continue;
 			}
 			empty_days = 0;
-			trend_tail.push_back(trend_tail_t(L[0], H[0], C[0], V[0], P[0], MF[0]));
+			trend_tail.push_back(trend_tail_t(L, H, C, V, P, MF));
 			day_tail = utils::dec_day(day_tail);
 		}
 		if (!empty_queue.empty() && empty_queue.front() == day)
@@ -165,6 +158,10 @@ void Trends::calculate_acum(const char *cod, int start)
 					pMF += i->MF;
 				else if (j->P > i->P)
 					nMF += i->MF;
+				if (j->C < i->C)
+					trends_acum[TRENDS_ACUM_OBV] += i->V;
+				else if (j->C > i->C)
+					trends_acum[TRENDS_ACUM_OBV] -= i->V;
 			}
 			if (i->L != i->H)
 			{
@@ -201,7 +198,7 @@ void Trends::calculate_acum(const char *cod, int start)
 		}
 		ILOG("Trends::calculate_acum(%s) -> insert %08d (%d)", cod, day, trend_tail.size() + 1);
 		dbtrends.insert_acum(cod, day, trends_acum[0], trends_acum[1], trends_acum[2],
-		    trends_acum[3], trends_acum[4], trends_acum[5]);
+		    trends_acum[3], trends_acum[4], trends_acum[5], trends_acum[6]);
 	}
 }
 
@@ -210,20 +207,21 @@ int Trends::run()
 	manager->observe(ICEVENT_STATISTICS_UPDATED);
 	for (;;)
 	{
+		pthread_mutex_lock(&mtx);
+		while (!stcs_updates)
+			pthread_cond_wait(&cond, &mtx);
+		stcs_updates = 0;
+		pthread_mutex_unlock(&mtx);
+
 		int today = utils::today();
 		std::vector<std::string> codes;
-//		dbfeeder.get_value_codes(&codes);
+		manager->cache->feeder__get_value_codes(&codes);
 		for (int i = 0; i < codes.size(); i++)
 		{
 			calculate(codes[i].c_str(), today);
 			calculate_acum(codes[i].c_str(), today);
 		}
 		ILOG("Trends::run() -> done for now (%08d, stcs_updates: %d)", today, stcs_updates);
-		pthread_mutex_lock(&mtx);
-		while (!stcs_updates)
-			pthread_cond_wait(&cond, &mtx);
-		stcs_updates = 0;
-		pthread_mutex_unlock(&mtx);
 	}
 	return 0;
 }

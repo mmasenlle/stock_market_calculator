@@ -40,6 +40,7 @@ int CruncherManager::cruncher_fn(void *arg)
 CruncherManager::CruncherManager()
 {
 	ccfg = &config;
+	cache = &dbcache;
 }
 
 void CruncherManager::init()
@@ -58,6 +59,8 @@ void CruncherManager::init()
 	{
 		SELOG("CruncherManager::init() -> ic.init(%d)", config.ic_port);
 	}
+	dbcache.init(config.db_conninfo.c_str());
+
 	for (int i = 0; i < config.plugins.size(); i++)
 	{
 		ICruncher *icruncher = NULL;
@@ -139,6 +142,7 @@ void CruncherManager::handle_msg(ICMsg *msg, ICPeer *from)
 			SET_LOGGER_LEVEL(ev2->getSubEvent());
 			break;
 		default:
+			pthread_mutex_lock(&manager_mtx);
 			if (observers.find(ev->getEvent()) != observers.end())
 			{
 				for (std::set<int>::iterator i = observers[ev->getEvent()].begin();
@@ -151,6 +155,7 @@ void CruncherManager::handle_msg(ICMsg *msg, ICPeer *from)
 			{
 				WLOG("CruncherManager::handle_msg() -> unhandled event %d", ev->getEvent());
 			}
+			pthread_mutex_unlock(&manager_mtx);
 		}
 		break;
 	}
@@ -199,6 +204,7 @@ void CruncherManager::run()
 		else // FIXME: do it more intelligently
 		{
 			DLOG("CruncherManager::run() -> nothing happened in the last %d ms", CRUNCHERMANAGER_WAITTIME);
+			dbcache.drain();
 			if (observers.find(ICEVENT_FEEDER_NEWFEED) != observers.end())
 			{
 				ICRegistration registration(CRUNCHERMANAGER_WAITTIME);

@@ -5,6 +5,7 @@
 #include <set>
 #include <pthread.h>
 #include "CcltorIC.h"
+#include "DBCache.h"
 #include "CruncherConfig.h"
 #include "ICruncher.h"
 
@@ -20,6 +21,7 @@ class CruncherManager : public ICruncherManager
 {
 	CruncherConfig config;
 	CcltorIC ic;
+	DBCache dbcache;
 	
 	pthread_mutex_t manager_mtx;
 	std::map<int, Cruncher *> crunchers;
