@@ -24,5 +24,6 @@ CREATE TABLE trends_acum (
 	ROC		double precision,
 	AD		double precision,
 	MFI		double precision,
+	OBV		double precision,
 	PRIMARY KEY (value, date)
 );
