@@ -43,7 +43,7 @@ void Output::get_data(const OutpDesc *desc, std::vector<double> *data, std::vect
 				desc->day_start, desc->day_end,
 				data, &times[0]);
 		break;
-	case OUTPTYPE_SMA ... OUTPTYPE_MFI:
+	case OUTPTYPE_SMA ... OUTPTYPE_OBV:
 		dbtrends.get_acum(desc->value.c_str(), desc->type - OUTPTYPE_SMA + TRENDS_ACUM_SMA,
 				desc->day_start, desc->day_end,
 				data, &times[0]);
