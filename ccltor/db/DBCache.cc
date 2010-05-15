@@ -138,6 +138,7 @@ int DBCache::statistics__get_day(const char *code, int item, int stc, int day, d
 			Entry_scalar_data *e = new Entry_scalar_data(time(NULL));
 			e->data = *data;
 			cache[key] = e;
+			ret = 1;
 		}
 	}
 	pthread_mutex_unlock(&mtx);
@@ -215,6 +216,7 @@ int DBCache::dbtrends__get(const char *code, int item, int day, double *data)
 			Entry_scalar_data *e = new Entry_scalar_data(time(NULL));
 			e->data = *data;
 			cache[key] = e;
+			ret = 1;
 		}
 	}
 	pthread_mutex_unlock(&mtx);
