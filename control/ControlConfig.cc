@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "utils.h"
 #include "logger.h"
+#include "ICEvent2.h"
 #include "ControlConfig.h"
 
 
@@ -12,12 +13,43 @@ ControlConfig::ControlConfig()
     ic_port = 17777;
 }
 
+bool ControlConfig::strto_event(const char *str, char **p)
+{
+	DLOG("ControlConfig::strto_event(%s)", str);
+#define STR2EVENT(_s, _e) \
+	if (!strncasecmp(str, _s, strlen(_s)) && (!str[strlen(_s)] || str[strlen(_s)] == ':')) { \
+		*p = (char*)str + strlen(_s); \
+		event = _e; \
+		return true; \
+	}
+	STR2EVENT("run", ICEVENT_CONTROL_RUNNING);
+	STR2EVENT("log", ICEVENT_CONTROL_LOGLEVEL);
+	return false;
+}
+
+bool ControlConfig::strto_subevent(const char *str)
+{
+	DLOG("ControlConfig::strto_subevent(%s)", str);
+#define STR2SEVENT(_s, _e) \
+	if (strcasecmp(str, _s) == 0) { \
+		sub_event = _e; \
+		return true; \
+	}
+	STR2SEVENT("ping", ICEVENT2_CONTROL_RUNNING_PING);
+	STR2SEVENT("stop", ICEVENT2_CONTROL_RUNNING_STOP);
+	return false;
+}
+
 void ControlConfig::get_event(const char *ev_str)
 {
 	char *p;
-	event = strtol(ev_str, &p, 10);
-	if (p && *p)
-		sub_event = strtol(++p, NULL, 10);
+	if (!strto_event(ev_str, &p))
+		event = strtol(ev_str, &p, 10);
+	if (p && *p++)
+	{
+		if (!strto_subevent(p))
+			sub_event = strtol(p, NULL, 10);
+	}
 }
 
 void ControlConfig::add_peer(const char *p_str)
