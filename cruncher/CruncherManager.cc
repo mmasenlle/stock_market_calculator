@@ -1,4 +1,4 @@
-
+#include <signal.h>
 #include <poll.h>
 #include <dlfcn.h>
 #include "utils.h"
@@ -132,6 +132,8 @@ void CruncherManager::handle_msg(ICMsg *msg, ICPeer *from)
 				break;
 			}
 			case ICEVENT2_CONTROL_RUNNING_STOP:
+				for (std::map<int, Cruncher *>::iterator i = crunchers.begin(); i != crunchers.end(); i++)
+					kill(i->first, SIGTERM);
 				exit(0);
 			case ICEVENT2_CONTROL_RUNNING_RECONNECT:
 				break;
