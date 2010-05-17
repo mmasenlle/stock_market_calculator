@@ -117,12 +117,12 @@ void Output::merge_data(const std::vector<int> times[2], const std::vector<doubl
 					if (j >= t[1].size() && i < times[1].size())
 					{
 						MERGE_STEP(times, i);
-						j++;
+						//j++;
 					}
 					else if (i >= times[1].size())
 					{
 						MERGE_STEP(t, j);
-						i++;
+						//i++;
 					}
 					else //if (j < t[1].size() && i < times[1].size())
 					{
