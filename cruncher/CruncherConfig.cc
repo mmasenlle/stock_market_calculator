@@ -25,7 +25,7 @@ void CruncherConfig::add_plugins(const char *ps)
 
 void CruncherConfig::add_feeder(const char *p_str)
 {
-	char *p = strchr(p_str, ':');
+	char *p = (char*)strchr(p_str, ':');
 	if (p)
 	{
 		*p = 0;

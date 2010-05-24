@@ -54,7 +54,7 @@ void ControlConfig::get_event(const char *ev_str)
 
 void ControlConfig::add_peer(const char *p_str)
 {
-	char *p = strchr(p_str, ':');
+	char *p = (char*)strchr(p_str, ':');
 	if (p)
 	{
 		*p = 0;
