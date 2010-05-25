@@ -4,7 +4,7 @@
 #include "Chart.h"
 #include "Output.h"
 
-Output::Output() : dbfeeder(&db), dbstatistics(&db), dbtrends(&db)
+Output::Output() : dbfeeder(&db), dbstatistics(&db), dbtrends(&db), dbwealth(&db)
 {
 	front = NULL;
 }
@@ -48,7 +48,11 @@ void Output::get_data(const OutpDesc *desc, std::vector<double> *data, std::vect
 				desc->day_start, desc->day_end,
 				data, &times[0]);
 		break;
-
+	case OUTPTYPE_WCOUNT ... OUTPTYPE_WSTD:
+		dbwealth.get(desc->item - OUTPITEM_PRICE + WEALTH_ITEM_PRICE,
+				desc->type - OUTPTYPE_WCOUNT + WEALTH_STC_COUNT, desc->day_start, desc->day_end,
+				data, &times[0]);
+		break;
 	}
 }
 
