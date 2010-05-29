@@ -100,7 +100,6 @@ int Wealth::run()
 			{
 				for (int k = 0; the_same && k < LAST_STATISTICS_STC; k++)
 				{
-					r[j][k] /= count;
 					std::vector<double> d;
 					dbwealth.get(j, k, day, day, &d, NULL);
 					the_same = (d.size() == 1 && utils::equald(r[j][k], d[0]));
