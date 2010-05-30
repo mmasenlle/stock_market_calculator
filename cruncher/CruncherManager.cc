@@ -91,7 +91,7 @@ void CruncherManager::init()
 			goto plugin_error;
 		}
 		pthread_mutex_lock(&cruncher->mtx);
-		cruncher->pid = clone(cruncher_fn, cruncher->stack + sizeof(cruncher->stack) - sizeof(void*), 
+		cruncher->pid = clone(cruncher_fn, cruncher->stack + sizeof(cruncher->stack), 
 				CLONE_FS | CLONE_FILES | CLONE_SIGHAND | CLONE_PTRACE | CLONE_VM, cruncher);
 		if (cruncher->pid == -1)
 		{
