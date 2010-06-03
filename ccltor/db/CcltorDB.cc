@@ -48,7 +48,9 @@ PGresult *CcltorDB::exec_sql(const char *sql)
 		else
 		{
 			ExecStatusType status = PQresultStatus(result);
+#ifdef DEBUG_EXEC_SQL
 			DLOG("CcltorDB::exec_sql(%s) -> status: %d-%s", sql, status, PQresStatus(status));
+#endif
 			if (status != PGRES_COMMAND_OK && status != PGRES_TUPLES_OK)
 			{
 				char *errtext = PQresultErrorMessage(result);
