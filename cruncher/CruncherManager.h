@@ -13,7 +13,7 @@ struct Cruncher
 {
 	char stack[32 * 1024];
 	ICruncher *cruncher;
-	int pid;
+	pthread_t tid;
 	pthread_mutex_t mtx;
 };
 
@@ -24,13 +24,13 @@ class CruncherManager : public ICruncherManager
 	DBCache dbcache;
 	
 	pthread_mutex_t manager_mtx;
-	std::map<int, Cruncher *> crunchers;
-	std::map<int, std::set<int> > observers;
+	std::map<pthread_t, Cruncher *> crunchers;
+	std::map<int, std::set<pthread_t> > observers;
 	
 	void handle_msg(ICMsg *msg, ICPeer *from);
 	void handle_ic();
 	
-	static int cruncher_fn(void *);
+	static void *cruncher_fn(void *);
 
 public:
 	CruncherManager();

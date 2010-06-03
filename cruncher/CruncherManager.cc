@@ -10,9 +10,9 @@
 
 int CruncherManager::observe(int event)
 {
-	DLOG("CruncherManager::observe(%d) -> pid: %d", event, getpid());
+	DLOG("CruncherManager::observe(%d) -> tid: %d", event, pthread_self());
 	pthread_mutex_lock(&manager_mtx);
-	observers[event].insert(getpid());
+	observers[event].insert(pthread_self());
 	pthread_mutex_unlock(&manager_mtx);
 	return 0;
 }
@@ -26,15 +26,15 @@ int CruncherManager::send(ICMsg *msg, const ICPeer *peer)
 	return 0;
 }
 
-int CruncherManager::cruncher_fn(void *arg)
+void *CruncherManager::cruncher_fn(void *arg)
 {
 	Cruncher *cruncher = (Cruncher *)arg;
-	DLOG("CruncherManager::cruncher_fn(%d) -> cruncher: %p", cruncher->pid, cruncher);
+	DLOG("CruncherManager::cruncher_fn(%d) -> cruncher: %p", pthread_self(), cruncher);
 	pthread_mutex_lock(&cruncher->mtx);
 	pthread_mutex_unlock(&cruncher->mtx);
 	cruncher->cruncher->run();
-	WLOG("CruncherManager::cruncher_fn(%d) -> returned", cruncher->pid);
-	return 1;
+	WLOG("CruncherManager::cruncher_fn(%d) -> returned", pthread_self());
+	return NULL;
 }
 
 CruncherManager::CruncherManager()
@@ -91,16 +91,14 @@ void CruncherManager::init()
 			goto plugin_error;
 		}
 		pthread_mutex_lock(&cruncher->mtx);
-		cruncher->pid = clone(cruncher_fn, cruncher->stack + sizeof(cruncher->stack), 
-				CLONE_FS | CLONE_FILES | CLONE_SIGHAND | CLONE_PTRACE | CLONE_VM, cruncher);
-		if (cruncher->pid == -1)
+		if ((r = pthread_create(&cruncher->tid, NULL, cruncher_fn, cruncher)) != 0)
 		{
-			SELOG("CruncherManager::init(%d) -> clone", i);
+			ELOG("CruncherManager::init(%d) -> pthread_create(): %d", i, r);
 			goto plugin_error;
 		}
-		crunchers[cruncher->pid] = cruncher;
+		crunchers[cruncher->tid] = cruncher;
 		r = icruncher->init(this);
-		ILOG("CruncherManager::init(%d, %d) -> icruncher->init(): %d", i, cruncher->pid, r);
+		ILOG("CruncherManager::init(%d, %d) -> icruncher->init(): %d", i, cruncher->tid, r);
 		continue;
 
 plugin_error:
@@ -132,7 +130,7 @@ void CruncherManager::handle_msg(ICMsg *msg, ICPeer *from)
 				break;
 			}
 			case ICEVENT2_CONTROL_RUNNING_STOP:
-				for (std::map<int, Cruncher *>::iterator i = crunchers.begin(); i != crunchers.end(); i++)
+				for (std::map<pthread_t, Cruncher *>::iterator i = crunchers.begin(); i != crunchers.end(); i++)
 					kill(i->first, SIGTERM);
 				exit(0);
 			case ICEVENT2_CONTROL_RUNNING_RECONNECT:
@@ -147,7 +145,7 @@ void CruncherManager::handle_msg(ICMsg *msg, ICPeer *from)
 			pthread_mutex_lock(&manager_mtx);
 			if (observers.find(ev->getEvent()) != observers.end())
 			{
-				for (std::set<int>::iterator i = observers[ev->getEvent()].begin();
+				for (std::set<pthread_t>::iterator i = observers[ev->getEvent()].begin();
 				i != observers[ev->getEvent()].end(); i++)
 				{
 					crunchers[*i]->cruncher->msg(ev);
@@ -186,7 +184,7 @@ void CruncherManager::handle_ic()
 void CruncherManager::run()
 {
 	DLOG("CruncherManager::run() -> crunchers.size(): %d", crunchers.size());
-	for (std::map<int, Cruncher *>::iterator i = crunchers.begin(); i != crunchers.end(); i++)
+	for (std::map<pthread_t, Cruncher *>::iterator i = crunchers.begin(); i != crunchers.end(); i++)
 	{
 		pthread_mutex_unlock(&i->second->mtx);
 	}
