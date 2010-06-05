@@ -15,7 +15,7 @@ extern "C" ICruncher * CRUNCHER_GETINSTANCE()
 	return new Trends;
 }
 
-Trends::Trends() : dbtrends(&db)
+Trends::Trends() : dbtrends(&db), trends_updated(ICEVENT_TRENDS_UPDATED)
 {
 	stcs_updates = 1;
 	int r = pthread_mutex_init(&mtx, NULL);
@@ -221,6 +221,7 @@ int Trends::run()
 			calculate(codes[i].c_str(), today);
 			calculate_acum(codes[i].c_str(), today);
 		}
+		manager->send(&trends_updated, NULL);
 		ILOG("Trends::run() -> done for now (%08d, stcs_updates: %d)", today, stcs_updates);
 	}
 	return 0;
