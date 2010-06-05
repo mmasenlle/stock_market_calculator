@@ -128,3 +128,12 @@ the accesses are going to be reduced.
  -Test cruncher cache and plugins
  -Try to fill the tables with correct data
  -Test the improvements due to the cache
+
+
+Sat Jun  5 17:05:09 CEST 2010
+ Wealth tables and cruncher plugin
+-----------------------------------
+ -Create tables wealth_* for existing all day values
+ -Implement a cruncher plugin to calculate the sum of each value
+
+
