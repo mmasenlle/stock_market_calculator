@@ -115,7 +115,7 @@ static const char *wealth_item_names[LAST_WEALTH_STC][LAST_WEALTH_ITEM] = {
 		{ "std_price", "std_volume", "std_capital" },
 };
 static const char *wealth_get_sql_fmt =
-	"SELECT %s, date FROM wealth WHERE market = '%s' AND date >= '%08d' AND date <= '%08d' ORDER BY date;";
+	"SELECT %s, date FROM wealth_sday WHERE market = '%s' AND date >= '%08d' AND date <= '%08d' ORDER BY date;";
 int DBwealth::get_sday(int item, int stc, int yyyymmdd_start, int yyyymmdd_end,
 		std::vector<double> *data, std::vector<int> *days,
 	    const char *market)
