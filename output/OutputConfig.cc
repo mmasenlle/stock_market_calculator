@@ -10,6 +10,8 @@ static const char *outp_types[] = { "all",
 		"P", "R1", "S1", "R2", "S2", "R3", "S3", "R4", "S4", "MF",
 		"SMA", "MAD", "CCI", "ROC", "AD", "MFI", "OBV",
 		"wcount", "wopen", "wclose", "wmin", "wmean", "wmax", "wstd",
+		"wP", "wR1", "wS1", "wR2", "wS2", "wR3", "wS3", "wR4", "wS4", "wMF",
+		"wSMA", "wMAD", "wCCI", "wROC", "wAD", "wMFI", "wOBV",
 		NULL };
 void OutputConfig::setType(const char *stype, OutpDesc *odesc)
 {
