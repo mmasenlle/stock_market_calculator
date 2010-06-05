@@ -1,5 +1,5 @@
 
-CREATE TABLE wealth_sday (
+CREATE TABLE wealth (
     market          text,
     date            date,
     cnt_price       integer,
@@ -23,34 +23,5 @@ CREATE TABLE wealth_sday (
     std_price       double precision,
     std_volume      double precision,
     std_capital     double precision,
-    PRIMARY KEY (market, date)
-);
-
-CREATE TABLE wealth_trends (
-    market  text,
-	date	date,
-	P		double precision,
-	R1		double precision,
-	S1		double precision,
-	R2		double precision,
-	S2		double precision,
-	R3		double precision,
-	S3		double precision,
-	R4		double precision,
-	S4		double precision,
-	MF		double precision,
-    PRIMARY KEY (market, date)
-);
-
-CREATE TABLE wealth_trends_acum (
-    market  text,
-	date	date,
-	SMA		double precision,
-	MAD		double precision,
-	CCI		double precision,
-	ROC		double precision,
-	AD		double precision,
-	MFI		double precision,
-	OBV		double precision,
     PRIMARY KEY (market, date)
 );

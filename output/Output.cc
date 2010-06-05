@@ -49,18 +49,8 @@ void Output::get_data(const OutpDesc *desc, std::vector<double> *data, std::vect
 				data, &times[0]);
 		break;
 	case OUTPTYPE_WCOUNT ... OUTPTYPE_WSTD:
-		dbwealth.get_sday(desc->item - OUTPITEM_PRICE + WEALTH_ITEM_PRICE,
+		dbwealth.get(desc->item - OUTPITEM_PRICE + WEALTH_ITEM_PRICE,
 				desc->type - OUTPTYPE_WCOUNT + WEALTH_STC_COUNT, desc->day_start, desc->day_end,
-				data, &times[0]);
-		break;
-	case OUTPTYPE_WP ... OUTPTYPE_WMF:
-		dbwealth.get_trends(desc->type - OUTPTYPE_WP + WEALTH_TRENDS_P,
-				desc->day_start, desc->day_end,
-				data, &times[0]);
-		break;
-	case OUTPTYPE_WSMA ... OUTPTYPE_WOBV:
-		dbwealth.get_trends_acum(desc->type - OUTPTYPE_WSMA + WEALTH_TRENDS_ACUM_SMA,
-				desc->day_start, desc->day_end,
 				data, &times[0]);
 		break;
 	}

@@ -9,7 +9,6 @@ class Trends : public ICruncher
 	ICruncherManager *manager;
 	CcltorDB db;
 	DBtrends dbtrends;
-	ICEvent trends_updated;
 	
 	int stcs_updates;
 	pthread_mutex_t mtx;

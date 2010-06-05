@@ -1,7 +1,6 @@
 #ifndef _WEALTH_H_
 #define _WEALTH_H_
 
-#include "DBtrends.h"
 #include "DBwealth.h"
 #include "ICruncher.h"
 
@@ -9,10 +8,9 @@ class Wealth : public ICruncher
 {
 	ICruncherManager *manager;
 	CcltorDB db;
-	DBtrends dbtrends;
 	DBwealth dbwealth;
 	
-	int trends_updates;
+	int stcs_updates;
 	pthread_mutex_t mtx;
 	pthread_cond_t cond;
 
