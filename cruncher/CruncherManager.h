@@ -11,7 +11,6 @@
 
 struct Cruncher
 {
-	char stack[32 * 1024];
 	ICruncher *cruncher;
 	pthread_t tid;
 	pthread_mutex_t mtx;
