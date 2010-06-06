@@ -137,3 +137,9 @@ Sat Jun  5 17:05:09 CEST 2010
  -Implement a cruncher plugin to calculate the sum of each value
 
 
+Sun Jun  6 21:51:17 CEST 2010
+ Regression cruncher
+---------------------
+ -Some research about regression analysis and methods
+ -Implement something as a first approach
+
