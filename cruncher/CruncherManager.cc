@@ -59,7 +59,6 @@ void CruncherManager::init()
 	{
 		SELOG("CruncherManager::init() -> ic.init(%d)", config.ic_port);
 	}
-	dbcache.init(config.db_conninfo.c_str());
 
 	for (int i = 0; i < config.plugins.size(); i++)
 	{
@@ -204,7 +203,25 @@ void CruncherManager::run()
 		else // FIXME: do it more intelligently
 		{
 			DLOG("CruncherManager::run() -> nothing happened in the last %d ms", CRUNCHERMANAGER_WAITTIME);
-			dbcache.drain();
+			bool all_done = true;
+			for (std::map<pthread_t, Cruncher *>::iterator i = crunchers.begin();
+					all_done && i != crunchers.end(); i++)
+			{
+				all_done = (i->second->cruncher->get_state() == CRUNCHER_WAITING);
+			}
+			if (all_done)
+			{
+				if (config.shots == 1)
+				{
+					ILOG("CruncherManager::run() -> everything seems to be done, terminating ...");
+					exit(0);
+				}
+				else if (config.shots > 1)
+				{
+					config.shots--;
+				}
+				dbcache.drain();
+			}
 			if (observers.find(ICEVENT_FEEDER_NEWFEED) != observers.end())
 			{
 				ICRegistration registration(CRUNCHERMANAGER_WAITTIME);

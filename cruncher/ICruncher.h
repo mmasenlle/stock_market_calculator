@@ -14,13 +14,18 @@ struct ICruncherManager
 	virtual int send(ICMsg *msg, const ICPeer *peer) = 0;
 };
 
-class Logger;
+enum
+{
+	CRUNCHER_RUNNING,
+	CRUNCHER_WAITING
+};
 
 struct ICruncher
 {
 	virtual int init(ICruncherManager *manager) = 0;
 	virtual int run() = 0;
 	virtual int msg(ICMsg *msg) = 0;
+	virtual int get_state() = 0;
 	virtual ~ICruncher() {};
 };
 

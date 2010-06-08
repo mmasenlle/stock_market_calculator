@@ -8,6 +8,7 @@
 
 CruncherConfig::CruncherConfig()
 {
+	shots = 0;
 	force_until = 0;
 	plugins_path = ".";
     ic_port = 17300;
@@ -50,6 +51,8 @@ void CruncherConfig::init(int argc, char *argv[])
     
     init_post(xpconf, key.c_str(), argc, argv);
 
+	if (xpconf.getValue((key + "/shots").c_str(), &xp_value))
+		shots = atoi(xp_value.c_str());
 	if (xpconf.getValue((key + "/force_until").c_str(), &xp_value))
         force_until = atoi(xp_value.c_str());
     xpconf.getValue((key + "/plugins_path").c_str(), &plugins_path);
@@ -66,10 +69,16 @@ void CruncherConfig::init(int argc, char *argv[])
 			add_feeder(xp_value.c_str());
 	}
 
+	FOR_OPT(argc, argv)
+    {
+    case 's': shots = 1; break;
+	}
+	END_OPT;
     FOR_OPT_ARG(argc, argv)
     {
     case 'P': plugins_path = arg; break;
     case 'p': add_plugins(arg); break;
+    case 's': shots = atoi(arg); break;
 	case 'u': force_until = atoi(arg); break;
     }
     END_OPT;
