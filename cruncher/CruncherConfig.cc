@@ -84,6 +84,7 @@ void CruncherConfig::init(int argc, char *argv[])
     END_OPT;
 
 	DLOG("CruncherConfig::init() force_until = %d", force_until);
+	DLOG("CruncherConfig::init() shots = %d", shots);
     DLOG("CruncherConfig::init() plugins_path = '%s'", plugins_path.c_str());
     for (int i = 0; i < plugins.size(); i++)
     {
@@ -107,6 +108,7 @@ void CruncherConfig::print_help()
     fprintf(stdout, "Options:\n");
     fprintf(stdout, "  -P <path>       Plugin files path\n");
     fprintf(stdout, "  -p <plugin>[, ] Plugin(s) to load\n");
+	fprintf(stdout, "  -s [<shots>]    Run shots number of times and exit\n");
 	fprintf(stdout, "  -u <day>        Force calculations until this day\n");
 }
 
