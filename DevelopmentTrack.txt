@@ -142,4 +142,31 @@ Sun Jun  6 21:51:17 CEST 2010
 ---------------------
  -Some research about regression analysis and methods
  -Implement something as a first approach
+Comments: three step approach will be use (forecasting methods)
+1- First a simple n-order interpolation on P
+2- Then try a multivar interpolation on vars open, min, mean, max, close, mean_volume
+and close_volume for example.
+3- Finally try to calculate a regression function using numerical methods for
+least square. Maybe use the same variables as before in order to obtain min
+max values of several future days.
+
+
+Tue Jun  8 20:44:35 CEST 2010
+ Scheduler
+-----------
+ -Implement a scheduler task
+  +Configuration with tasks where task has a day mask, a time and a command to
+  execute.
+  +The process will run the commands at the times on the enabled days.
+
+
+Tue Jun  8 20:53:08 CEST 2010
+ Simple interpolator
+---------------------
+ -Cruncher plugin to calculate and evaluate a 20-order interpolation function
+ of P.
+  +Define a table to hold the parameters and the forecasted value of P for
+  each day and value.
+  +Follow the pattern of current crunchers, going from today back calculating
+  and filling the table.
 
