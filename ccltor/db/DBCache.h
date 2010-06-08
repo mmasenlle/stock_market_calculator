@@ -4,7 +4,6 @@
 #include <string>
 #include <map>
 #include <pthread.h>
-#include "CcltorDB.h"
 #include "DBfeeder.h"
 #include "DBstatistics.h"
 #include "DBtrends.h"
@@ -21,25 +20,20 @@ public:
 class DBCache
 {
 	pthread_mutex_t mtx;
-
-	CcltorDB db;
-	DBfeeder dbfeeder;
-	DBstatistics dbstatistics;
-	DBtrends dbtrends;
-	
 	std::map<std::string, DBCacheEntry *> cache;
 
 public:
 	DBCache();
 	~DBCache();
-	void init(const char *db_conninfo);
 	void drain();
 	
-	int feeder__get_value_codes(std::vector<std::string> *codes);
-	int statistics__get_day(const char *code, int item, int stc, int day, double *data);
-	int statistics__insert_day(const char *code, int day, double data[LAST_STATISTICS_ITEM][LAST_STATISTICS_STC]);
-	int dbtrends__get(const char *code, int item, int day, double *data);
-	int dbtrends__insert(const char *code, int day, double data[NR_TRENDS]);
+	int feeder__get_value_codes(DBfeeder *dbfeeder, std::vector<std::string> *codes);
+	int statistics__get_day(DBstatistics *dbstatistics,
+			const char *code, int item, int stc, int day, double *data);
+	int statistics__insert_day(DBstatistics *dbstatistics,
+			const char *code, int day, double data[LAST_STATISTICS_ITEM][LAST_STATISTICS_STC]);
+	int dbtrends__get(DBtrends *dbtrends, const char *code, int item, int day, double *data);
+	int dbtrends__insert(DBtrends *dbtrends, const char *code, int day, double data[NR_TRENDS]);
 };
 
 #endif
