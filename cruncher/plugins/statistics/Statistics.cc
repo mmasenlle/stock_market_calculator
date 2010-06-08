@@ -15,6 +15,7 @@ extern "C" ICruncher * CRUNCHER_GETINSTANCE()
 
 Statistics::Statistics() : dbfeeder(&db), dbstatistics(&db), stcs_updated(ICEVENT_STATISTICS_UPDATED)
 {
+	state = CRUNCHER_RUNNING;
 	newfeeds = 1;
 	int r = pthread_mutex_init(&mtx, NULL);
 	if (r != 0 || (r = pthread_cond_init(&cond, NULL)) != 0)
@@ -103,7 +104,7 @@ void Statistics::calculate_days(const char *cod, int start)
 			continue;
 		}
 		empty_days = 0;
-		if (manager->cache->statistics__insert_day(cod, day, r))
+		if (manager->cache->statistics__insert_day(&dbstatistics, cod, day, r))
 		{
 			ILOG("Statistics::calculate_days(%s) -> insert_day %08d", cod, day);
 		}
@@ -251,13 +252,15 @@ int Statistics::run()
 	for (;;)
 	{
 		pthread_mutex_lock(&mtx);
+		state = CRUNCHER_WAITING;
 		while (!newfeeds)
 			pthread_cond_wait(&cond, &mtx);
+		state = CRUNCHER_RUNNING;
 		newfeeds = 0;
 		pthread_mutex_unlock(&mtx);
 
 		std::vector<std::string> codes;
-		manager->cache->feeder__get_value_codes(&codes);
+		manager->cache->feeder__get_value_codes(&dbfeeder, &codes);
 		for (int i = 0; i < codes.size(); i++)
 		{
 			int recentst_day = utils::today(), recentst_time = 0;
@@ -312,4 +315,9 @@ int Statistics::msg(ICMsg *msg)
 		DLOG("Statistics::msg() -> ICEVENT_FEEDER_NEWFEED (%d)", newfeeds);
 	}
 	return 0;
+}
+
+int Statistics::get_state()
+{
+	return state;	
 }

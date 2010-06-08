@@ -15,8 +15,9 @@ extern "C" ICruncher * CRUNCHER_GETINSTANCE()
 	return new Wealth;
 }
 
-Wealth::Wealth() : dbwealth(&db), dbtrends(&db)
+Wealth::Wealth() : dbfeeder(&db), dbstatistics(&db), dbtrends(&db), dbwealth(&db)
 {
+	state = CRUNCHER_RUNNING;
 	trends_updates = 1;
 	int r = pthread_mutex_init(&mtx, NULL);
 	if (r != 0 || (r = pthread_cond_init(&cond, NULL)) != 0)
@@ -53,14 +54,16 @@ int Wealth::run()
 	for (;;)
 	{
 		pthread_mutex_lock(&mtx);
+		state = CRUNCHER_WAITING;
 		while (!trends_updates)
 			pthread_cond_wait(&cond, &mtx);
+		state = CRUNCHER_RUNNING;
 		trends_updates = 0;
 		pthread_mutex_unlock(&mtx);
 
 		int today = utils::today();
 		std::vector<std::string> codes;
-		manager->cache->feeder__get_value_codes(&codes);
+		manager->cache->feeder__get_value_codes(&dbfeeder, &codes);
 		int empty_days = 0;
 		for (int day = today; force_until < day; day = utils::dec_day(day))
 		{
@@ -80,7 +83,7 @@ int Wealth::run()
 					for (int k = 0; k < LAST_STATISTICS_STC; k++)
 					{
 						double v;
-						if (manager->cache->statistics__get_day(codes[i].c_str(), j, k, day, &v))
+						if (manager->cache->statistics__get_day(&dbstatistics, codes[i].c_str(), j, k, day, &v))
 						{
 							some_data = true;
 							sday[j][k] += v;
@@ -90,7 +93,7 @@ int Wealth::run()
 				for (int j = 0; j < NR_TRENDS; j++)
 				{
 					double v;
-					if (manager->cache->dbtrends__get(codes[i].c_str(), j, day, &v))
+					if (manager->cache->dbtrends__get(&dbtrends, codes[i].c_str(), j, day, &v))
 					{
 						some_data = true;
 						trends[j] += v;
@@ -187,4 +190,9 @@ int Wealth::msg(ICMsg *msg)
 		DLOG("Wealth::msg() -> ICEVENT_TRENDS_UPDATED");
 	}
 	return 0;
+}
+
+int Wealth::get_state()
+{
+	return state;	
 }

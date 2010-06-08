@@ -15,8 +15,9 @@ extern "C" ICruncher * CRUNCHER_GETINSTANCE()
 	return new Trends;
 }
 
-Trends::Trends() : dbtrends(&db), trends_updated(ICEVENT_TRENDS_UPDATED)
+Trends::Trends() : dbfeeder(&db), dbstatistics(&db), dbtrends(&db), trends_updated(ICEVENT_TRENDS_UPDATED)
 {
+	state = CRUNCHER_RUNNING;
 	stcs_updates = 1;
 	int r = pthread_mutex_init(&mtx, NULL);
 	if (r != 0 || (r = pthread_cond_init(&cond, NULL)) != 0)
@@ -54,10 +55,10 @@ void Trends::calculate(const char *cod, int start)
 	for (int day = start; force_until < day; day = utils::dec_day(day))
 	{
 		double L, H, C, V;
-		if (!manager->cache->statistics__get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MIN, day, &L) ||
-			!manager->cache->statistics__get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MAX, day, &H) ||
-			!manager->cache->statistics__get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_CLOSE, day, &C) ||
-			!manager->cache->statistics__get_day(cod, STATISTICS_ITEM_VOLUME, STATISTICS_STC_CLOSE, day, &V))
+		if (!manager->cache->statistics__get_day(&dbstatistics, cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MIN, day, &L) ||
+			!manager->cache->statistics__get_day(&dbstatistics, cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MAX, day, &H) ||
+			!manager->cache->statistics__get_day(&dbstatistics, cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_CLOSE, day, &C) ||
+			!manager->cache->statistics__get_day(&dbstatistics, cod, STATISTICS_ITEM_VOLUME, STATISTICS_STC_CLOSE, day, &V))
 		{
 			if (!force_until && ++empty_days > 15)
 			{
@@ -78,7 +79,7 @@ void Trends::calculate(const char *cod, int start)
 		trends[TRENDS_R4] = trends[TRENDS_R3] + (H - L);
 		trends[TRENDS_S4] = trends[TRENDS_S3] - (H - L);
 		trends[TRENDS_MF] = trends[TRENDS_P] * V;
-		if (manager->cache->dbtrends__insert(cod, day, trends))
+		if (manager->cache->dbtrends__insert(&dbtrends, cod, day, trends))
 		{
 			ILOG("Trends::calculate(%s) -> insert %08d", cod, day);
 		}
@@ -117,12 +118,12 @@ void Trends::calculate_acum(const char *cod, int start)
 		while (trend_tail.size() < TRENDACUM_N)
 		{
 			double L, H, C, V, P, MF;
-			if (!manager->cache->statistics__get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MIN, day_tail, &L) ||
-				!manager->cache->statistics__get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MAX, day_tail, &H) ||
-				!manager->cache->statistics__get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_CLOSE, day_tail, &C) ||
-				!manager->cache->statistics__get_day(cod, STATISTICS_ITEM_VOLUME, STATISTICS_STC_CLOSE, day_tail, &V) ||
-				!manager->cache->dbtrends__get(cod, TRENDS_P, day_tail, &P) ||
-				!manager->cache->dbtrends__get(cod, TRENDS_MF, day_tail, &MF))
+			if (!manager->cache->statistics__get_day(&dbstatistics, cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MIN, day_tail, &L) ||
+				!manager->cache->statistics__get_day(&dbstatistics, cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MAX, day_tail, &H) ||
+				!manager->cache->statistics__get_day(&dbstatistics, cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_CLOSE, day_tail, &C) ||
+				!manager->cache->statistics__get_day(&dbstatistics, cod, STATISTICS_ITEM_VOLUME, STATISTICS_STC_CLOSE, day_tail, &V) ||
+				!manager->cache->dbtrends__get(&dbtrends, cod, TRENDS_P, day_tail, &P) ||
+				!manager->cache->dbtrends__get(&dbtrends, cod, TRENDS_MF, day_tail, &MF))
 			{
 				empty_queue.push_back(day_tail);
 				day_tail = utils::dec_day(day_tail);
@@ -208,14 +209,16 @@ int Trends::run()
 	for (;;)
 	{
 		pthread_mutex_lock(&mtx);
+		state = CRUNCHER_WAITING;
 		while (!stcs_updates)
 			pthread_cond_wait(&cond, &mtx);
+		state = CRUNCHER_RUNNING;
 		stcs_updates = 0;
 		pthread_mutex_unlock(&mtx);
 
 		int today = utils::today();
 		std::vector<std::string> codes;
-		manager->cache->feeder__get_value_codes(&codes);
+		manager->cache->feeder__get_value_codes(&dbfeeder, &codes);
 		for (int i = 0; i < codes.size(); i++)
 		{
 			calculate(codes[i].c_str(), today);
@@ -238,4 +241,9 @@ int Trends::msg(ICMsg *msg)
 		DLOG("Trends::msg() -> ICEVENT_STATISTICS_UPDATED");
 	}
 	return 0;
+}
+
+int Trends::get_state()
+{
+	return state;	
 }

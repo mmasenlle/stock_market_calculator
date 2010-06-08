@@ -17,6 +17,7 @@ class Statistics : public ICruncher
 	pthread_mutex_t mtx;
 	pthread_cond_t cond;
 
+	int state;
 	int newfeeds;
 	int force_until;
 	
@@ -32,6 +33,7 @@ public:
 	int init(ICruncherManager *manager);
 	int run();
 	int msg(ICMsg *msg);
+	int get_state();
 
 	Statistics();
 	~Statistics();
