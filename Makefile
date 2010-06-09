@@ -3,7 +3,7 @@ include flags.mk
 
 install_dirs = ccltor feeder control output scripts \
 		cruncher cruncher/plugins/statistics cruncher/plugins/trends \
-		cruncher/plugins/wealth 
+		cruncher/plugins/wealth cruncher/plugins/interpolator
 
 build_dirs = $(install_dirs)
 
