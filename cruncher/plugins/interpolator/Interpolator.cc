@@ -3,8 +3,9 @@
 #include <map>
 #include <float.h>
 #include <math.h>
-#include "utils.h"
 #include "logger.h"
+#include "utils.h"
+#include "matrix.h"
 #include "ICEvent.h"
 #include "DBCache.h"
 #include "CruncherConfig.h"
@@ -51,7 +52,7 @@ int Interpolator::init(ICruncherManager *icm)
 void Interpolator::resolve(int n, const double *yy, const double *X, double *aa)
 {
 	double X_1[n][n];
-//X_1 = X inverted
+	matrix::invert(n, X, (double*)X_1);
 	for (int i = 0; i < n; i++)
 	{
 		aa[i] = 0.0;
