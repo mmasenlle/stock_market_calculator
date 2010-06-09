@@ -76,7 +76,9 @@ int DBCache::feeder__get_value_codes(DBfeeder *dbfeeder, std::vector<std::string
 		{
 			*codes = ((Entry_feeder__get_value_codes*)cache[__FUNCTION__])->codes;
 			ret = 1;
+#ifdef DEBUG_DBCACHE
 			DLOG("DBCache::feeder__get_value_codes() -> hit (codes.size: %d)", codes->size());
+#endif
 		}
 		else
 		{
@@ -100,7 +102,9 @@ int DBCache::feeder__get_value_codes(DBfeeder *dbfeeder, std::vector<std::string
 			pthread_mutex_unlock(&mtx);
 #endif
 		}
+#ifdef DEBUG_DBCACHE
 		DLOG("DBCache::feeder__get_value_codes() -> miss (codes.size: %d)", codes->size());
+#endif
 	}
 	return ret;
 }
@@ -125,7 +129,9 @@ int DBCache::statistics__get_day(DBstatistics *dbstatistics,
 		{
 			*data = ((Entry_scalar_data*)cache[key])->data;
 			ret = 1;
+#ifdef DEBUG_DBCACHE
 			DLOG("DBCache::statistics__get_day(%s) -> hit (%f)", key, *data);
+#endif
 		}
 		else
 		{
@@ -153,7 +159,9 @@ int DBCache::statistics__get_day(DBstatistics *dbstatistics,
 			pthread_mutex_unlock(&mtx);
 #endif
 		}
+#ifdef DEBUG_DBCACHE
 		DLOG("DBCache::statistics__get_day(%s) -> miss (%f)", key, *data);
+#endif
 	}
 	return ret;
 }
@@ -214,7 +222,9 @@ int DBCache::dbtrends__get(DBtrends *dbtrends, const char *code, int item, int d
 		{
 			*data = ((Entry_scalar_data*)cache[key])->data;
 			ret = 1;
+#ifdef DEBUG_DBCACHE
 			DLOG("DBCache::dbtrends__get(%s) -> hit (%f)", key, *data);
+#endif
 		}
 		else
 		{
@@ -242,7 +252,9 @@ int DBCache::dbtrends__get(DBtrends *dbtrends, const char *code, int item, int d
 			pthread_mutex_unlock(&mtx);
 #endif
 		}
+#ifdef DEBUG_DBCACHE
 		DLOG("DBCache::dbtrends__get(%s) -> miss (%f)", key, *data);
+#endif
 	}
 	return ret;
 }
