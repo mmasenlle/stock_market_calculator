@@ -23,7 +23,7 @@ int DBinterpolator::insert(const char *value, int yyyymmdd, double PP, const dou
 			"a0 = %.15G, a1 = %.15G, a2 = %.15G, a3 = %.15G, a4 = %.15G, "
 			"a5 = %.15G, a6 = %.15G, a7 = %.15G, a8 = %.15G, a9 = %.15G, "
 			"a10 = %.15G, a11 = %.15G, a12 = %.15G, a13 = %.15G, a14 = %.15G, "
-			"a15 = %.15G, a16 = %.15G, a17 = %.15G, a18 = %.15G, a19 = %.15G, "
+			"a15 = %.15G, a16 = %.15G, a17 = %.15G, a18 = %.15G, a19 = %.15G "
 			"WHERE value = '%s' AND date = '%08d';",
 			PP, A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7], A[8], A[9],
 			A[10], A[11], A[12], A[13], A[14], A[15], A[16], A[17], A[18], A[19],
