@@ -3,6 +3,14 @@
 #include "utils.h"
 #include "matrix.h"
 
+double matrix::dot(int n, const double *u, const double *v)
+{
+	double y = 0;
+	for (int j = 0; j < n; j++)
+		y += u[j] * v[j];
+	return y;
+}
+
 void matrix::transpose(int n, const double *M, double *MT)
 {
 	for (int i = 0; i < n; i++)
@@ -10,7 +18,8 @@ void matrix::transpose(int n, const double *M, double *MT)
 			MT[(j * n) + i] = M[(i * n) + j];
 }
 
-static double matrix_cof(int n, const double *M, int i, int j)
+//FIXME: below here very inefficient
+static double matrix_cofactor(int n, const double *M, int i, int j)
 {
 	double subM[n - 1][n - 1];
 	for (int k = 0; k < (n - 1); k++)
@@ -25,7 +34,7 @@ double matrix::det(int n, const double *M)
 	if(n == 2) return ((M[0] * M[3]) - (M[1] * M[2]));
 	double d = 0;
 	for (int i = 0; i < n; i++)
-		d += (M[i * n] * matrix_cof(n, M, i, 0));
+		d += (M[i * n] * matrix_cofactor(n, M, i, 0));
 	return d;
 }
 
@@ -40,6 +49,6 @@ void matrix::invert(int n, const double *M, double *M_1)
 	{
 		for (int i = 0; i < n; i++)
 			for (int j = 0; j < n; j++)
-				M_1[(j * n) + i] = matrix_cof(n, M, i, j) / detM;
+				M_1[(j * n) + i] = matrix_cofactor(n, M, i, j) / detM;
 	}
 }
