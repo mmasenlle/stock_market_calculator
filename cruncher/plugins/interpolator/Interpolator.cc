@@ -5,7 +5,7 @@
 #include <math.h>
 #include "logger.h"
 #include "utils.h"
-#include "matrix.h"
+#include "equation.h"
 #include "ICEvent.h"
 #include "DBCache.h"
 #include "CruncherConfig.h"
@@ -47,18 +47,6 @@ int Interpolator::init(ICruncherManager *icm)
 	}
 	force_until = manager->ccfg->force_until;
 	return 0;
-}
-
-void Interpolator::resolve(int n, const double *yy, const double *X, double *aa)
-{
-	double X_1[n][n];
-	matrix::invert(n, X, (double*)X_1);
-	for (int i = 0; i < n; i++)
-	{
-		aa[i] = 0.0;
-		for (int j = 0; j < n; j++)
-			aa[i] += X_1[i][j] * yy[j];
-	}
 }
 
 #define INTERPOLATOR_ORDER (NR_INTERPOLATOR - INTERPOLATOR_a0)
@@ -115,7 +103,7 @@ void Interpolator::calculate(const char *cod, int start)
 			}
 		}
 		double aa[INTERPOLATOR_ORDER];
-		resolve(INTERPOLATOR_ORDER, yy, (const double *)X, aa);
+		equation::solve(INTERPOLATOR_ORDER, yy, (const double *)X, aa);
 		bool the_same = true;
 		for (int k = INTERPOLATOR_a0; the_same && k < NR_INTERPOLATOR; k++)
 		{
@@ -129,9 +117,7 @@ void Interpolator::calculate(const char *cod, int start)
 			DLOG("Interpolator::calculate(%s) -> %08d same data, returning ...", cod, day);
 			return;
 		}
-		double y = aa[INTERPOLATOR_ORDER - 1] * yy[0];
-		for (int j = 2; j <= INTERPOLATOR_ORDER; j++)
-			y = aa[INTERPOLATOR_ORDER - j] + (yy[0] * y);
+		double y = equation::polyval(INTERPOLATOR_ORDER, aa, yy[0]);
 		ILOG("Interpolator::calculate(%s) -> insert %08d", cod, day);
 		dbinterpolator.insert(cod, day, y, aa);
 	}

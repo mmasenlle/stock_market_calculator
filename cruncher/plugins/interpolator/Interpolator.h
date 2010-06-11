@@ -20,8 +20,7 @@ class Interpolator : public ICruncher
 	int state;
 	int trends_updates;
 	int force_until;
-	
-	void resolve(int n, const double *yy, const double *X, double *aa);
+
 	void calculate(const char *cod, int start);
 
 public:
