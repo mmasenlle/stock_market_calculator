@@ -67,7 +67,8 @@ void Interpolator::calculate(const char *cod, int start)
 			{
 				empty_queue.push_back(day_tail);
 				day_tail = utils::dec_day(day_tail);
-				if (force_until < day_tail && ++empty_days > 15)
+				if (!force_until || day_tail < force_until) empty_days++;
+				if (empty_days > 15)
 				{
 					DLOG("Interpolator::calculate(%s) -> %08d..%08d (%d,%d) breaking ...",
 					    cod, day_tail, day, empty_days, xx.size());
