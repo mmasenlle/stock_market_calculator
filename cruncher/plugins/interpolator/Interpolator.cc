@@ -85,11 +85,13 @@ void Interpolator::calculate(const char *cod, int start)
 			empty_queue.pop_front();
 			continue;
 		}
+		double aa[INTERPOLATOR_ORDER];
 		double yy[INTERPOLATOR_ORDER];
 		double X[INTERPOLATOR_ORDER][INTERPOLATOR_ORDER];
 		std::list<double>::iterator i = xx.begin();
 		for (int j = 0; j < INTERPOLATOR_ORDER; i++, j++)
 		{
+			aa[j] = 0;
 			yy[j] = *i;
 			X[j][0] = 1.0;
 		}
@@ -102,8 +104,7 @@ void Interpolator::calculate(const char *cod, int start)
 				X[j][k] = X[j][k - 1] * (*i);
 			}
 		}
-		double aa[INTERPOLATOR_ORDER];
-		equation::solve(INTERPOLATOR_ORDER, yy, (const double *)X, aa);
+		double se = equation::solve(INTERPOLATOR_ORDER, yy, (const double *)X, aa);
 		bool the_same = true;
 		for (int k = INTERPOLATOR_a0; the_same && k < NR_INTERPOLATOR; k++)
 		{
@@ -111,15 +112,14 @@ void Interpolator::calculate(const char *cod, int start)
 			dbinterpolator.get(cod, k, day, day, &d, NULL);
 			the_same = (d.size() == 1 && utils::equald(aa[k - INTERPOLATOR_a0], d[0]));
 		}
-		if (the_same)
+		if (!the_same)
 		{
-			if (force_until) continue;
-			DLOG("Interpolator::calculate(%s) -> %08d same data, returning ...", cod, day);
-			return;
+			double y = equation::polyval(INTERPOLATOR_ORDER, aa, yy[0]);
+			ILOG("Interpolator::calculate(%s) -> insert %08d", cod, day);
+			dbinterpolator.insert(cod, day, y, aa);
 		}
-		double y = equation::polyval(INTERPOLATOR_ORDER, aa, yy[0]);
-		ILOG("Interpolator::calculate(%s) -> insert %08d", cod, day);
-		dbinterpolator.insert(cod, day, y, aa);
+		if (!force_until)
+			return;
 	}
 }
 
