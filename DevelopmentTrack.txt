@@ -169,4 +169,14 @@ Tue Jun  8 20:53:08 CEST 2010
   each day and value.
   +Follow the pattern of current crunchers, going from today back calculating
   and filling the table.
+Comments: The coefficients of the polynomial are estimated with an iterative
+method that is very convenient but not accurate. Anyway, the model is very
+very bad, although as a concept of probe has been a good exercise. This plugin is
+not worth of maintaining, but it can be used very easily as template for the next
+step of the forecasters. At the end, the multivar interpolation is going to be the
+same as simple one, but there is room to improve and investigate. The most
+important is to create a good model, try to figure out the best variables and
+the order of each one. Then use a more sofisticated method to estimate the
+linear system.
+
 
