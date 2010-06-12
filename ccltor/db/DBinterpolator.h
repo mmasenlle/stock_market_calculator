@@ -41,7 +41,7 @@ public:
 
 	int insert(const char *value, int yyyymmdd, double PP, double error, const double A[]);
 
-	int get(const char *value, int trend, int yyyymmdd_start, int yyyymmdd_end,
+	int get(const char *value, int item, int yyyymmdd_start, int yyyymmdd_end,
 			std::vector<double> *data, std::vector<int> *days);
 };
 

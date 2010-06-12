@@ -1,6 +1,7 @@
 #ifndef _OUTPUT_H_
 #define _OUTPUT_H_
 
+#include "DBinterpolator.h"
 #include "DBwealth.h"
 #include "DBtrends.h"
 #include "DBfeeder.h"
@@ -17,6 +18,7 @@ class Output
 	DBstatistics dbstatistics;
 	DBtrends dbtrends;
 	DBwealth dbwealth;
+	DBinterpolator dbinterpolator;
 	
 	void get_data(const OutpDesc *desc, std::vector<double> *data, std::vector<int> times[2]);
 	void merge_data(const std::vector<int> times[2], const std::vector<double> *data,

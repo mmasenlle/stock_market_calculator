@@ -4,7 +4,8 @@
 #include "Chart.h"
 #include "Output.h"
 
-Output::Output() : dbfeeder(&db), dbstatistics(&db), dbtrends(&db), dbwealth(&db)
+Output::Output()
+ : dbfeeder(&db), dbstatistics(&db), dbtrends(&db), dbwealth(&db), dbinterpolator(&db)
 {
 	front = NULL;
 }
@@ -60,6 +61,11 @@ void Output::get_data(const OutpDesc *desc, std::vector<double> *data, std::vect
 		break;
 	case OUTPTYPE_WSMA ... OUTPTYPE_WOBV:
 		dbwealth.get_trends_acum(desc->type - OUTPTYPE_WSMA + WEALTH_TRENDS_ACUM_SMA,
+				desc->day_start, desc->day_end,
+				data, &times[0]);
+		break;
+	case OUTPTYPE_IPP:
+		dbinterpolator.get(desc->value.c_str(), INTERPOLATOR_PP,
 				desc->day_start, desc->day_end,
 				data, &times[0]);
 		break;
