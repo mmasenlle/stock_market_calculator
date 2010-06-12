@@ -1,0 +1,22 @@
+This document is for register ideas of things to implement in a relatively far
+future or ideas that need maturation.
+=====================================================================
+
+
+Sat Jun 12 19:38:57 CEST 2010
+ Expert system
+-----------------
+ Something to go through the data looking for things (trends, predictions). It
+ has to have some rules or something and when various predictions or other
+ things match for the same thing, to ring the bell. Something like that. Maybe
+ with plugins to see the differents things, with and output or something
+ normalized, when various match ...
+
+ Prediction checker
+--------------------
+ Something to go checking the historic predictions and storing the rate of
+ match in order to get the idea of accuracy of different methods. This data
+ can be used to tune the expert system and to know the fiability.
+
+
+
