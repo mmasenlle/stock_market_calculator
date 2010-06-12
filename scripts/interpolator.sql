@@ -3,6 +3,7 @@ CREATE TABLE interpolator (
 	value	varchar(16) REFERENCES feeder_values,
 	date	date,
 	PP		double precision,
+	error	double precision,
 	a0		double precision,
 	a1		double precision,
 	a2		double precision,

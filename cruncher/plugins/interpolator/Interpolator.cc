@@ -104,7 +104,7 @@ void Interpolator::calculate(const char *cod, int start)
 				X[j][k] = X[j][k - 1] * (*i);
 			}
 		}
-		double se = equation::solve(INTERPOLATOR_ORDER, yy, (const double *)X, aa);
+		double e = equation::solve(INTERPOLATOR_ORDER, yy, (const double *)X, aa);
 		bool the_same = true;
 		for (int k = INTERPOLATOR_a0; the_same && k < NR_INTERPOLATOR; k++)
 		{
@@ -116,7 +116,7 @@ void Interpolator::calculate(const char *cod, int start)
 		{
 			double y = equation::polyval(INTERPOLATOR_ORDER, aa, yy[0]);
 			ILOG("Interpolator::calculate(%s) -> insert %08d", cod, day);
-			dbinterpolator.insert(cod, day, y, aa);
+			dbinterpolator.insert(cod, day, y, e, aa);
 		}
 		if (!force_until)
 			return;

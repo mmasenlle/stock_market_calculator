@@ -7,6 +7,7 @@
 enum
 {
 	INTERPOLATOR_PP,
+	INTERPOLATOR_error,
 	INTERPOLATOR_a0,
 	INTERPOLATOR_a1,
 	INTERPOLATOR_a2,
@@ -38,7 +39,7 @@ class DBinterpolator
 public:
 	DBinterpolator(CcltorDB *db);
 
-	int insert(const char *value, int yyyymmdd, double PP, const double A[]);
+	int insert(const char *value, int yyyymmdd, double PP, double error, const double A[]);
 
 	int get(const char *value, int trend, int yyyymmdd_start, int yyyymmdd_end,
 			std::vector<double> *data, std::vector<int> *days);
