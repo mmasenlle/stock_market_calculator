@@ -1,7 +1,7 @@
 #! /bin/sh
 
-BACKUP_FPATTERN=/home/manu/calculinator/backups/ccltor_dump.sql.gz
-BACKUP2_FPATTERN=/media/pen/ccltor_dump.sql.gz
+BACKUP_FPATTERN=/home/manu/calculinator/backups/ccltor_dump.sql.xz
+BACKUP2_FPATTERN=/media/pen/ccltor_dump.sql.xz
 
 echo "[`date`] $0 Running ..."
 if [ `ps -e | grep postmaster | wc -l` -lt 1 ]; then
@@ -13,7 +13,7 @@ mv $BACKUP_FPATTERN.3 $BACKUP_FPATTERN.4
 mv $BACKUP_FPATTERN.2 $BACKUP_FPATTERN.3
 mv $BACKUP_FPATTERN.1 $BACKUP_FPATTERN.2
 mv $BACKUP_FPATTERN $BACKUP_FPATTERN.1
-pg_dump calculinator | gzip > $BACKUP_FPATTERN
+pg_dump calculinator | xz > $BACKUP_FPATTERN
 mv $BACKUP2_FPATTERN $BACKUP2_FPATTERN.1
 cp $BACKUP_FPATTERN $BACKUP2_FPATTERN
 echo "[`date`] $0 Done :-)"

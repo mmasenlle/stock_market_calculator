@@ -1,7 +1,7 @@
 SRC_ROOT = ..
 include $(SRC_ROOT)/flags.mk
 
-install_scripts = ccltor.sh expansion2xml.pl
+install_scripts = ccltor.sh ccltor_backup.sh expansion2xml.pl
 
 nothing:
 
