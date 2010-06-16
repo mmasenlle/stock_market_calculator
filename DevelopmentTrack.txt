@@ -180,3 +180,12 @@ the order of each one. Then use a more sofisticated method to estimate the
 linear system.
 
 
+Wed Jun 16 23:17:58 CEST 2010
+ Support no unique value codes
+-------------------------------
+ -Study how to support different codes for the same value from different
+ sources.
+  +Redesign db schema if needed
+  +Do a script or program to convert the data
+
+
