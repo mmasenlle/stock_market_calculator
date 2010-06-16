@@ -18,7 +18,7 @@ sub put_num
 }
 
 $starting_line = "<TD ID=Tit>Hora</TD>";
-$data_pattern = "fichavalor.asp[?]isin=([^\"]+)\">[^>]*> (.*)</A></TD><TD>([^<]+)</TD><TD[^<]+</TD><TD[^<]+</TD><TD[^<]+</TD><TD>([^<]+)</TD><TD>([^<]+)</TD><TD[^<]+</TD><TD[^>]*>([^<]+)</TD></TR>";
+$data_pattern = "fichavalor.asp[?]isin=([^\"]+)\">[^>]*> (.*)</A></TD><TD>([^<]+)</TD><TD[^<]+</TD><TD[^<]+</TD><TD[^<]+</TD><TD>([^<]+)</TD><TD>([^<]+)</TD><TD[^<]+</TD><TD[^>]*>(.+[:][^<]+)</TD></TR>";
 #fichavalor.asp?isin=ES0105200416"><IMG SRC="/images/arr-dw9.gif" BORDER=0> ABENGOA</A></TD><TD>16,4300</TD><TD ID=R>-1,59</TD><TD>16,8900</TD><TD>16,3950</TD><TD>201.662</TD><TD>3.347,65</TD><TD align=center>16/06/2010</TD><TD align=center>10:18</TD></TR>
 #$value_pattern = "<a href=\"\/bolsa\/cotizaciones\/Ficha[?]cod=([^\"]+)\"[^>]+>(.*)<\/a>";
 #$col_pattern = "<td.*>(.+)</td>";
