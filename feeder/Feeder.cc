@@ -183,11 +183,7 @@ int Feeder::feed()
 
 void Feeder::init()
 {
-	int r; /*= snprintf(id_str, sizeof(id_str), "feeder:%d@", getpid());
-	if (gethostname(id_str + r, sizeof(id_str) - r) < 0)
-	{
-		SELOG("Feeder::init() -> gethostname()");
-	}*/
+	int r;
 	if ((r = utils::nohup()) < 0)
 	{
 		SELOG("Feeder::init() -> utils::nohup(): %d", r);
@@ -253,7 +249,6 @@ void Feeder::run()
 	int r = feed();
 	if (r > 0)
 	{
-//		dbfeeder.insert_feed(id_str, r);
 		obs.notify(&ic, &newfeed);
 		ILOG("Feeder::run() -> %d values processed", r);
 	}

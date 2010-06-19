@@ -20,7 +20,6 @@ class DBfeeder
 public:
 	DBfeeder(CcltorDB *db);
 
-//	int insert_feed(const char *feeder, int count);
 	int insert_value(const char *source_id, const char *name,
 			double price, double volume, double capital,
 			int hhmmss);

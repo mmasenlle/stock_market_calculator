@@ -19,7 +19,6 @@ class Feeder
 	int pid_wget;
 	struct timeval last_feed;
 	struct pollfd pfds[1];
-//	char id_str[128];
 
 	void handleEvent(ICEvent *event, ICPeer *peer);
 	void handleIC();

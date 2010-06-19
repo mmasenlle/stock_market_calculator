@@ -30,7 +30,7 @@ int DBfeeder::insert_value(const char *source_id, const char *name,
 	if (codes.find(source_id) == codes.end())
 	{
 		snprintf(buffer, sizeof(buffer),
-		    "SELECT code FROM feeder_value_names WHERE source_id = '%s'; AND code NOTNULL", source_id);
+		    "SELECT code FROM feeder_value_codes WHERE source_id = '%s' AND code NOTNULL;", source_id);
 		PGresult *r = mdb->exec_sql(buffer);
 		if (r)
 		{
@@ -42,12 +42,11 @@ int DBfeeder::insert_value(const char *source_id, const char *name,
 			PQclear(r);
 		}
 	}
-	const char *code = NULL;
-	if (codes.find(source_id) == codes.end())
+	const char *code = (codes.find(source_id) != codes.end()) ? codes[source_id].c_str() : source_id;
+	if (values_cache.find(code) == values_cache.end() && code == source_id)
 	{
-		code = source_id;
 		snprintf(buffer, sizeof(buffer),
-				"INSERT INTO feeder_value_names (code, name) VALUES ('%s', '%s');",
+				"INSERT INTO feeder_value_codes (source_id, name) VALUES ('%s', '%s');",
 				source_id, name);
 		PGresult *r = mdb->exec_sql(buffer);
 		if (r)
@@ -56,20 +55,22 @@ int DBfeeder::insert_value(const char *source_id, const char *name,
 			ret++;
 		}
 	}
-	else
-	{
-		code = codes[source_id].c_str();
-	}
 	if (values_cache.find(code) != values_cache.end() && values_cache[code] == hhmmss)
 	{
 		return ret;
 	}
-	else if (code == source_id || !insert_value_prepared)
+	else if (code == source_id)
 	{
 		snprintf(buffer, sizeof(buffer),
-				"INSERT INTO feeder_%s_prices (value, time, price, volume, capital) "
+				"INSERT INTO feeder_orphan_prices (source_id, time, price, volume, capital) "
 				"VALUES ('%s', '%06d', %.15G, %.15G, %.15G);",
-		    	(code == source_id) ? "orphan" : "value",
+				code, hhmmss, price, volume, capital);
+	}
+	else if (!insert_value_prepared)
+	{
+		snprintf(buffer, sizeof(buffer),
+				"INSERT INTO feeder_value_prices (value, time, price, volume, capital) "
+				"VALUES ('%s', '%06d', %.15G, %.15G, %.15G);",
 				code, hhmmss, price, volume, capital);
 	}
 	else
@@ -111,7 +112,7 @@ int DBfeeder::get_value_name(const char *value, std::string *name)
 	int ret = 0;
 	char buffer[256];
 	snprintf(buffer, sizeof(buffer),
-		"SELECT name FROM feeder_values WHERE code = '%s';", value);
+		"SELECT name FROM feeder_value_codes WHERE code = '%s';", value);
 	PGresult *r = mdb->exec_sql(buffer);
 	if (r)
 	{
