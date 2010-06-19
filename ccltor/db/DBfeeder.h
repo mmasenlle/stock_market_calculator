@@ -14,13 +14,14 @@ class DBfeeder
 	bool insert_value_prepared;
 	bool get_value_data_prepared[LAST_FEEDER_DATAITEM];
 
+	std::map<std::string, std::string> codes;
 	std::map<std::string, int> values_cache;
 
 public:
 	DBfeeder(CcltorDB *db);
 
-	int insert_feed(const char *feeder, int count);
-	int insert_value(const char *code, const char *name,
+//	int insert_feed(const char *feeder, int count);
+	int insert_value(const char *source_id, const char *name,
 			double price, double volume, double capital,
 			int hhmmss);
 

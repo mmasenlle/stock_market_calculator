@@ -1,5 +1,5 @@
 
-CCLTOR_VERSION = 0.2.0
+CCLTOR_VERSION = 0.3.0
 
 SRC_ROOT ?= .
 INSTALL_DIR ?= ~/calculinator
