@@ -15,6 +15,8 @@ CREATE TABLE trends (
 	PRIMARY KEY (value, date)
 );
 
+GRANT ALL ON trends TO manu;
+
 CREATE TABLE trends_acum (
 	value	varchar(16),
 	date	date,
@@ -27,3 +29,5 @@ CREATE TABLE trends_acum (
 	OBV		double precision,
 	PRIMARY KEY (value, date)
 );
+
+GRANT ALL ON trends_acum TO manu;

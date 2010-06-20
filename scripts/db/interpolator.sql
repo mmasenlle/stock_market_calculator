@@ -26,3 +26,5 @@ CREATE TABLE interpolator (
 	a19		double precision,
 	PRIMARY KEY (value, date)
 );
+
+GRANT ALL ON interpolator TO manu;

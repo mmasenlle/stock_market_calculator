@@ -26,6 +26,8 @@ CREATE TABLE wealth_sday (
     PRIMARY KEY (market, date)
 );
 
+GRANT ALL ON wealth_sday TO manu;
+
 CREATE TABLE wealth_trends (
     market  text,
 	date	date,
@@ -42,6 +44,8 @@ CREATE TABLE wealth_trends (
     PRIMARY KEY (market, date)
 );
 
+GRANT ALL ON wealth_trends TO manu;
+
 CREATE TABLE wealth_trends_acum (
     market  text,
 	date	date,
@@ -54,3 +58,5 @@ CREATE TABLE wealth_trends_acum (
 	OBV		double precision,
     PRIMARY KEY (market, date)
 );
+
+GRANT ALL ON wealth_trends_acum TO manu;

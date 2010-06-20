@@ -26,6 +26,8 @@ CREATE TABLE statistics_of_day (
     PRIMARY KEY (value, date)
 );
 
+GRANT ALL ON statistics_of_day TO manu;
+
 CREATE TABLE statistics_of_month (
     value           varchar(16),
     date            date, -- day 1 of the month
@@ -53,6 +55,8 @@ CREATE TABLE statistics_of_month (
     PRIMARY KEY (value, date)
 );
 
+GRANT ALL ON statistics_of_month TO manu;
+
 CREATE TABLE statistics_of_year (
     value           varchar(16),
     date            date, -- day 1 of january of the year
@@ -79,3 +83,5 @@ CREATE TABLE statistics_of_year (
     std_capital     double precision,
     PRIMARY KEY (value, date)
 );
+
+GRANT ALL ON statistics_of_year TO manu;

@@ -5,6 +5,8 @@ CREATE TABLE feeder_value_ids (
     ccltor_id       varchar(16) DEFAULT NULL
 );
 
+GRANT ALL ON feeder_value_ids TO manu;
+
 CREATE TABLE feeder_value_data (
     value           text REFERENCES feeder_value_ids,
     date            date DEFAULT CURRENT_DATE,
@@ -14,3 +16,5 @@ CREATE TABLE feeder_value_data (
     capital         double precision,
     PRIMARY KEY (value, date, time)
 );
+
+GRANT ALL ON feeder_value_data TO manu;

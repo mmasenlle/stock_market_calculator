@@ -10,15 +10,15 @@ DBfeeder::DBfeeder(CcltorDB *db) : mdb(db)
 		get_value_data_prepared[i] = false;
 }
 
-int DBfeeder::insert_value(const char *source_id, const char *name,
+int DBfeeder::insert_value(const char *code, const char *name,
 			double price, double volume, double capital, int hhmmss)
 {
 	int ret = 0;
 	if (!insert_value_prepared)
 	{
 		PGresult *r = mdb->exec_sql(
-			"PREPARE insert_price (text, time, double precision, double precision, double precision) AS "
-			"INSERT INTO feeder_value_prices (value, time, price, volume, capital) VALUES($1, $2, $3, $4, $5);");
+			"PREPARE insert_value_data (text, time, double precision, double precision, double precision) AS "
+			"INSERT INTO feeder_value_data (value, time, price, volume, capital) VALUES ($1, $2, $3, $4, $5);");
 		if (r)
 		{
 			insert_value_prepared = true;
@@ -27,27 +27,11 @@ int DBfeeder::insert_value(const char *source_id, const char *name,
 		}
 	}
 	char buffer[256];
-	if (codes.find(source_id) == codes.end())
+	if (values_cache.find(code) == values_cache.end())
 	{
 		snprintf(buffer, sizeof(buffer),
-		    "SELECT code FROM feeder_value_codes WHERE source_id = '%s' AND code NOTNULL;", source_id);
-		PGresult *r = mdb->exec_sql(buffer);
-		if (r)
-		{
-			if ((ret = PQntuples(r)))
-			{
-				char *str = PQgetvalue(r, 0, 0);
-				if (str) codes[source_id] = str;
-			}
-			PQclear(r);
-		}
-	}
-	const char *code = (codes.find(source_id) != codes.end()) ? codes[source_id].c_str() : source_id;
-	if (values_cache.find(code) == values_cache.end() && code == source_id)
-	{
-		snprintf(buffer, sizeof(buffer),
-				"INSERT INTO feeder_value_codes (source_id, name) VALUES ('%s', '%s');",
-				source_id, name);
+				"INSERT INTO feeder_value_ids (source_id, name) VALUES ('%s', '%s');",
+				code, name);
 		PGresult *r = mdb->exec_sql(buffer);
 		if (r)
 		{
@@ -55,28 +39,21 @@ int DBfeeder::insert_value(const char *source_id, const char *name,
 			ret++;
 		}
 	}
-	if (values_cache.find(code) != values_cache.end() && values_cache[code] == hhmmss)
+	else if (values_cache[code] == hhmmss)
 	{
 		return ret;
 	}
-	else if (code == source_id)
+	if (!insert_value_prepared)
 	{
 		snprintf(buffer, sizeof(buffer),
-				"INSERT INTO feeder_orphan_prices (source_id, time, price, volume, capital) "
-				"VALUES ('%s', '%06d', %.15G, %.15G, %.15G);",
-				code, hhmmss, price, volume, capital);
-	}
-	else if (!insert_value_prepared)
-	{
-		snprintf(buffer, sizeof(buffer),
-				"INSERT INTO feeder_value_prices (value, time, price, volume, capital) "
+				"INSERT INTO feeder_value_data (value, time, price, volume, capital) "
 				"VALUES ('%s', '%06d', %.15G, %.15G, %.15G);",
 				code, hhmmss, price, volume, capital);
 	}
 	else
 	{
 		snprintf(buffer, sizeof(buffer),
-				"EXECUTE insert_price('%s', '%06d', %.15G, %.15G, %.15G);",
+				"EXECUTE insert_value_data ('%s', '%06d', %.15G, %.15G, %.15G);",
 				code, hhmmss, price, volume, capital);
 	}
 	PGresult *r = mdb->exec_sql(buffer);
@@ -92,7 +69,7 @@ int DBfeeder::insert_value(const char *source_id, const char *name,
 int DBfeeder::get_value_codes(std::vector<std::string> *codes)
 {
 	int ret = 0;
-	PGresult *r = mdb->exec_sql("SELECT code FROM feeder_value_codes WHERE code NOTNULL;");
+	PGresult *r = mdb->exec_sql("SELECT DISTINCT ccltor_id FROM feeder_value_ids WHERE ccltor_id NOTNULL;");
 	if (r)
 	{
 		ret = PQntuples(r);
@@ -112,7 +89,7 @@ int DBfeeder::get_value_name(const char *value, std::string *name)
 	int ret = 0;
 	char buffer[256];
 	snprintf(buffer, sizeof(buffer),
-		"SELECT name FROM feeder_value_codes WHERE code = '%s';", value);
+		"SELECT name FROM feeder_value_ids WHERE ccltor_id = '%s';", value);
 	PGresult *r = mdb->exec_sql(buffer);
 	if (r)
 	{
@@ -143,8 +120,8 @@ int DBfeeder::get_value_data(const char *value, int item,
 		if (!get_value_data_prepared[item])
 		{
 			snprintf(buffer, sizeof(buffer), "PREPARE get_value_%s (text, date, date, time, time) AS "
-							"SELECT %s, date, time FROM feeder_value_prices WHERE "
-							"(value = $1 AND date >= $2 AND date <= $3 AND time >= $4 AND time <= $5) "
+							"SELECT %s, date, time FROM feeder_value_data, feeder_value_ids WHERE value = source_id "
+							"AND ccltor_id = $1 AND date >= $2 AND date <= $3 AND time >= $4 AND time <= $5 "
 							"ORDER BY date, time;", value_item_names[item], value_item_names[item]);
 			PGresult *r = mdb->exec_sql(buffer);
 			if (r)
@@ -156,15 +133,15 @@ int DBfeeder::get_value_data(const char *value, int item,
 		}
 		if (!get_value_data_prepared[item])
 		{
-			snprintf(buffer, sizeof(buffer), "SELECT %s, date, time FROM feeder_value_prices WHERE "
-					"(value = '%s' AND date >= '%08d' AND date <= '%08d' AND "
-					"time >= '%06d' AND time <= '%06d') ORDER BY date, time;",
+			snprintf(buffer, sizeof(buffer), "SELECT %s, date, time FROM feeder_value_data, feeder_value_ids "
+					"WHERE value = source_id AND ccltor_id = $1 AND date >= '%08d' AND date <= '%08d' AND "
+					"time >= '%06d' AND time <= '%06d' ORDER BY date, time;",
 					value_item_names[item], value, yyyymmdd_start, yyyymmdd_end, hhmmss_start, hhmmss_end);
 		}
 		else
 		{
 			snprintf(buffer, sizeof(buffer),
-					"EXECUTE get_value_%s('%s', '%08d', '%08d', '%06d', '%06d');",
+					"EXECUTE get_value_%s ('%s', '%08d', '%08d', '%06d', '%06d');",
 					value_item_names[item], value, yyyymmdd_start, yyyymmdd_end, hhmmss_start, hhmmss_end);
 		}
 		PGresult *r = mdb->exec_sql(buffer);

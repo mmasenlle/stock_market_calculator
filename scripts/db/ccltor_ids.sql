@@ -1,12 +1,16 @@
 
 UPDATE feeder_value_ids SET ccltor_id='NEABG'
 	WHERE source_id='NEABG' OR source_id='M.ABG' OR source_id='ES0105200416';
-
-UPDATE feeder_value_ids SET ccltor_id='M.ABE' WHERE source_id='ES0111845014';
-UPDATE feeder_value_ids SET ccltor_id='M.ANA' WHERE source_id='ES0125220311';
-UPDATE feeder_value_ids SET ccltor_id='M.ACX' WHERE source_id='ES0132105018';
-UPDATE feeder_value_ids SET ccltor_id='M.ACS' WHERE source_id='ES0167050915';
-UPDATE feeder_value_ids SET ccltor_id='M.ADZ' WHERE source_id='ES0106000013';
+UPDATE feeder_value_ids SET ccltor_id='M.ABE'
+	WHERE source_id='M.ABE' OR source_id='ES0111845014';
+UPDATE feeder_value_ids SET ccltor_id='M.ANA'
+	WHERE source_id='M.ANA' OR source_id='ES0125220311';
+UPDATE feeder_value_ids SET ccltor_id='M.ACX'
+	WHERE source_id='M.ACX' OR source_id='ES0132105018';
+UPDATE feeder_value_ids SET ccltor_id='M.ACS'
+	WHERE source_id='M.ACS' OR source_id='ES0167050915';
+UPDATE feeder_value_ids SET ccltor_id='M.ADZ'
+	WHERE source_id='M.ADZ' OR source_id='ES0106000013';
 UPDATE feeder_value_ids SET ccltor_id='M.AFR' WHERE source_id='M.QBT' OR source_id='ES0110944016';
 UPDATE feeder_value_ids SET ccltor_id='M.ALM' WHERE source_id='ES0157097017';
 UPDATE feeder_value_ids SET ccltor_id='M.AMS' WHERE source_id='ES0109067019';
