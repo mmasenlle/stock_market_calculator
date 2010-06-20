@@ -187,5 +187,15 @@ Wed Jun 16 23:17:58 CEST 2010
  sources.
   +Redesign db schema if needed
   +Do a script or program to convert the data
+Comments: Now there are to id's, one for the source (web page), and other for
+the ccltor system. The feeds are identified by the source id, but the rest of
+the calculations are based on the ccltor id (statistics, trends, etc). The
+insertion of the feeds are quite the same, but the retrieve of the values are
+done with a join between feeder_value_ids and feeder_value_data because the
+code used may imply several codes in the table of the data. The binding
+between the codes ought to be done manually. There are also scripts for
+creating all the tables with the new model, for coping the feeder data to the
+new tables and so on. A script with the binding of the codes is under
+construction, but even without it the system is by now operative.
 
 
