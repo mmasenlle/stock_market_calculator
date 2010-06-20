@@ -1,6 +1,6 @@
 
 CREATE TABLE interpolator (
-	value	varchar(16) REFERENCES feeder_values,
+	value	varchar(16),
 	date	date,
 	PP		double precision,
 	error	double precision,

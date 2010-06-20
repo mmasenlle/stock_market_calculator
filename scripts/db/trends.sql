@@ -1,6 +1,6 @@
 
 CREATE TABLE trends (
-	value	varchar(16) REFERENCES feeder_values,
+	value	varchar(16),
 	date	date,
 	P		double precision,
 	R1		double precision,
@@ -16,7 +16,7 @@ CREATE TABLE trends (
 );
 
 CREATE TABLE trends_acum (
-	value	varchar(16) REFERENCES feeder_values,
+	value	varchar(16),
 	date	date,
 	SMA		double precision,
 	MAD		double precision,
