@@ -21,16 +21,16 @@ void Scheduler::update(time_t tt)
 	for (int i = 0; i < config.cmds.size(); i++)
 	{
 		int rem = delay;
-		if (last_stamps[i] && config.cmds[i].interval)
+		if (last_stamps[i] && config.cmds[i]->interval)
 		{
-			rem = tt + config.cmds[i].interval - last_stamps[i];
-			for (int j = 0; j < 7 && (config.cmds[i].days_off & (1 << ((tm.tm_wday + j) % 7))); j++)
+			rem = tt + config.cmds[i]->interval - last_stamps[i];
+			for (int j = 0; j < 7 && (config.cmds[i]->days_off & (1 << ((tm.tm_wday + j) % 7))); j++)
 				rem += (24 * 60 * 60); //FIXME: jump a whole day or start in time start ?
 		}
 		else
 		{
-			rem = config.cmds[i].time_start - daysec;
-			for (int j = 0; j < 7 && (config.cmds[i].days_off & (1 << ((tm.tm_wday + j) % 7))); j++)
+			rem = config.cmds[i]->time_start - daysec;
+			for (int j = 0; j < 7 && (config.cmds[i]->days_off & (1 << ((tm.tm_wday + j) % 7))); j++)
 				rem += (24 * 60 * 60);
 			if (rem < 0 && (!last_stamps[i] || (last_stamps[i] + 100 > tt)))
 				rem += (24 * 60 * 60);
@@ -46,7 +46,7 @@ void Scheduler::update(time_t tt)
 
 void Scheduler::exec()
 {
-	ILOG("Scheduler::exec(%d) -> '%s'", next, config.cmds[next].argv[0]);
+	ILOG("Scheduler::exec(%d) -> '%s'", next, config.cmds[next]->argv[0]);
 	int pid = fork();
 	if (pid == -1)
 	{
@@ -54,8 +54,8 @@ void Scheduler::exec()
 	}
 	else if (pid == 0)
 	{
-		execvp(config.cmds[next].argv[0], config.cmds[next].argv);
-		SELOG("Scheduler::exec(%d) -> '%s'", next, config.cmds[next].argv[0]);
+		execvp(config.cmds[next]->argv[0], (char* const*)config.cmds[next]->argv);
+		SELOG("Scheduler::exec(%d) -> '%s'", next, config.cmds[next]->argv[0]);
 		exit(-1);
 	}
 }

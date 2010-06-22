@@ -9,21 +9,22 @@ struct SchedCmd
 	int days_off;
 	int time_start;
 	int interval;
+	std::vector<std::string> varg;
+	const char **argv;
 
-	char **argv;
-	char *argbuf;
 	SchedCmd();
 	~SchedCmd();
+	void set_cmd(const char *cmd);
+	void set_do(const char *sdo);
+	void set_ts(const char *sts);
 };
 
 class SchedulerConfig : public CcltorConfig
 {
     void print_help();
-    
-    void setCmd(const char *cmd, SchedCmd *scmd);
 
 public:
-	std::vector<SchedCmd> cmds;
+	std::vector<SchedCmd*> cmds;
 
     SchedulerConfig();
     void init(int argc, char *argv[]);
