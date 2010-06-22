@@ -1,7 +1,7 @@
 
 include flags.mk
 
-install_dirs = ccltor feeder control output scripts \
+install_dirs = ccltor feeder control scheduler output scripts \
 		cruncher cruncher/plugins/statistics cruncher/plugins/trends \
 		cruncher/plugins/wealth cruncher/plugins/interpolator
 
