@@ -1,0 +1,15 @@
+<!-- ccltor_scheduler configuration file example -->
+<ccltor_scheduler>
+    <commands>
+    	<command>
+		<cmd>echo "hello"</cmd>
+		<days_off>10</days_off>
+		<time_start>173000</time_start>
+		<interval>0</interval>
+    	</command>
+    </commands>
+    <ic_port>17601</ic_port>
+    <log_level>5</log_level>
+    <log_fname>-</log_fname>
+</ccltor_scheduler>
+
