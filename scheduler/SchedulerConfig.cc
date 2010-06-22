@@ -4,6 +4,19 @@
 #include "SchedulerConfig.h"
 
 
+SchedCmd::SchedCmd()
+{
+	days_off = time_start = interval = 0;
+	argv = NULL;
+	argbuf = NULL;
+}
+
+SchedCmd::~SchedCmd()
+{
+	delete [] argv;
+	delete [] argbuf;
+}
+
 SchedulerConfig::SchedulerConfig()
 {
     ic_port = 17600;
@@ -12,6 +25,8 @@ SchedulerConfig::SchedulerConfig()
 void SchedulerConfig::setCmd(const char *cmd, SchedCmd *scmd)
 {
 	DLOG("SchedulerConfig::setCmd(%s)", cmd);
+	int bufsize = 0;
+	std::vector<std::string> argv;
 	std::string arg;
 	for (; *cmd; cmd++)
 	{
@@ -19,7 +34,8 @@ void SchedulerConfig::setCmd(const char *cmd, SchedCmd *scmd)
 		{
 			if (arg.length())
 			{
-				scmd->cmd.push_back(arg);
+				argv.push_back(arg);
+				bufsize += arg.size();
 				arg.clear();
 			}
 		}
@@ -29,7 +45,20 @@ void SchedulerConfig::setCmd(const char *cmd, SchedCmd *scmd)
 		}
 	}
 	if (arg.length())
-		scmd->cmd.push_back(arg);
+	{
+		argv.push_back(arg);
+		bufsize += arg.size();
+	}
+	scmd->argv = new char*[argv.size() + 1];
+	scmd->argbuf = new char[bufsize];
+	char *p = scmd->argbuf;
+	for (int i = 0; i < argv.size(); i++)
+	{
+		scmd->argv[i] = p;
+		strcpy(p, argv[i].c_str());
+		p += argv[i].size();
+	}
+	scmd->argv[argv.size()] = NULL;
 }
 
 void SchedulerConfig::init(int argc, char *argv[])
@@ -67,12 +96,12 @@ void SchedulerConfig::init(int argc, char *argv[])
 
     for (int i = 0; i < cmds.size(); i++)
     {
-    	DLOG("CruncherConfig::init() cmds[%d].days_off = %d", i, cmds[i].days_off);
-    	DLOG("CruncherConfig::init() cmds[%d].time_start = %d", i, cmds[i].time_start);
-    	DLOG("CruncherConfig::init() cmds[%d].interval = %d", i, cmds[i].interval);
-        for (int j = 0; j < cmds[i].cmd.size(); j++)
+    	DLOG("SchedulerConfig::init() cmds[%d].days_off = %d", i, cmds[i].days_off);
+    	DLOG("SchedulerConfig::init() cmds[%d].time_start = %d", i, cmds[i].time_start);
+    	DLOG("SchedulerConfig::init() cmds[%d].interval = %d", i, cmds[i].interval);
+    	for (int j = 0; cmds[i].argv[j]; j++)
         {
-        	DLOG("CruncherConfig::init() cmds[%d].cmd[%d] = '%s'", i, j, cmds[i].cmd[j].c_str());
+        	DLOG("SchedulerConfig::init() cmds[%d].argv[%d] = '%s'", i, j, cmds[i].argv[j]);
         }
     }    
 	DLOG("SchedulerConfig::init() ic_port = %d", ic_port);

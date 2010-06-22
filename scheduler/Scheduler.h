@@ -15,8 +15,10 @@ class Scheduler
 	CcltorIC ic;
 	
 	void handle_msg(ICMsg *msg, ICPeer *from);
-	void update();
+	void update(time_t tt);
 	void exec();
+	
+	static void sigchld_handler(int s);
 
 public:
 	SchedulerConfig config;
