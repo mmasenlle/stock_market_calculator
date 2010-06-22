@@ -134,7 +134,7 @@ int DBfeeder::get_value_data(const char *value, int item,
 		if (!get_value_data_prepared[item])
 		{
 			snprintf(buffer, sizeof(buffer), "SELECT %s, date, time FROM feeder_value_data, feeder_value_ids "
-					"WHERE value = source_id AND ccltor_id = $1 AND date >= '%08d' AND date <= '%08d' AND "
+					"WHERE value = source_id AND ccltor_id = '%s' AND date >= '%08d' AND date <= '%08d' AND "
 					"time >= '%06d' AND time <= '%06d' ORDER BY date, time;",
 					value_item_names[item], value, yyyymmdd_start, yyyymmdd_end, hhmmss_start, hhmmss_end);
 		}
