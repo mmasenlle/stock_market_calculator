@@ -15,33 +15,37 @@ Scheduler::Scheduler()
 
 void Scheduler::update(time_t tt)
 {
+	struct tm tm; localtime_r(&tt, &tm);
+	int day0 = tt - ((((tm.tm_hour * 60) + tm.tm_min) * 60) + tm.tm_sec);
+	DLOG("Scheduler::update(%u) -> %u +%d sec", tt, day0, tt - day0);
+	int t = 0;
 	next = -1;
-    struct tm tm; localtime_r(&tt, &tm);
-    int daysec = (((tm.tm_hour * 60) + tm.tm_min) * 60) + tm.tm_sec;
 	for (int i = 0; i < config.cmds.size(); i++)
 	{
-		int rem = delay;
-		if (last_stamps[i] && config.cmds[i]->interval)
+		if (!last_stamps[i] || !config.cmds[i]->interval)
 		{
-			rem = tt + config.cmds[i]->interval - last_stamps[i];
-			for (int j = 0; j < 7 && (config.cmds[i]->days_off & (1 << ((tm.tm_wday + j) % 7))); j++)
-				rem += (24 * 60 * 60); //FIXME: jump a whole day or start in time start ?
+			t = day0 + config.cmds[i]->time_start;
+			int j = (t < tt || (t - last_stamps[i]) < (24 * 60 * 60));
+			if (j)
+				t += (24 * 60 * 60);
+			for (; (config.cmds[i]->days_off & (1 << ((tm.tm_wday + j) % 7))) && j < 7; j++)
+				t += (24 * 60 * 60);
 		}
-		else
+		else if (config.cmds[i]->interval > 0)
 		{
-			rem = config.cmds[i]->time_start - daysec;
-			for (int j = 0; j < 7 && (config.cmds[i]->days_off & (1 << ((tm.tm_wday + j) % 7))); j++)
-				rem += (24 * 60 * 60);
-			if (rem < 0 && (!last_stamps[i] || (last_stamps[i] + 100 > tt)))
-				rem += (24 * 60 * 60);
+			t = last_stamps[i] + config.cmds[i]->interval;
+			int j = (t >= day0 + (24 * 60 * 60));
+			for (; (config.cmds[i]->days_off & (1 << ((tm.tm_wday + j) % 7))) && j < 7; j++)
+				t += (24 * 60 * 60);
 		}
-		if (next < 0 || (rem < delay))
+		if ((next == -1 && t) || (next >= 0 && t < next_time))
 		{
+			next_time = t;
 			next = i;
-			delay = rem;
+			DLOG("Scheduler::update() -> next: %d next_time: %u", next, next_time);
 		}
 	}
-	next_time = delay > 0 ? tt + delay : tt;
+	delay = next_time - tt;
 }
 
 void Scheduler::exec()
@@ -133,29 +137,30 @@ void Scheduler::run()
 			wait_time = next_time - tt;
 			if (wait_time > 0 && wait_time <= delay)
 				break;
+			DLOG("Scheduler::run() -> %d %u/%u %d %d", next, next_time, tt, wait_time, delay);
 			exec();
 			last_stamps[next] = tt;
 			update(tt);
 		}
-		DLOG("Scheduler::run() -> wait_time %d", wait_time);
-        if (poll(pfds, ARRAY_SIZE(pfds), wait_time * 1000) == -1 && errno != EINTR)
-        {
-            SELOG("Scheduler::run() -> poll(%d, %d)", pfds[0].fd, wait_time * 1000);
-        }
-        else if (pfds[0].revents & POLLIN)
-        {
-        	ICPeer peer;
-        	ICMsg *msg = NULL;
-        	if (ic.receive(&msg, &peer) < 0)
-        	{
-        		SELOG("Scheduler::run() -> ic.receive()");
-        	}
-        	else if (msg)
-        	{
-        		handle_msg(msg, &peer);
-        		delete msg;
-        	}
-        }
+		DLOG("Scheduler::run() -> next: %d, wait_time %d", next, wait_time);
+		if (poll(pfds, ARRAY_SIZE(pfds), wait_time * 1000) == -1 && errno != EINTR)
+		{
+			SELOG("Scheduler::run() -> poll(%d, %d)", pfds[0].fd, wait_time * 1000);
+		}
+		else if (pfds[0].revents & POLLIN)
+		{
+			ICPeer peer;
+			ICMsg *msg = NULL;
+			if (ic.receive(&msg, &peer) < 0)
+			{
+				SELOG("Scheduler::run() -> ic.receive()");
+			}
+			else if (msg)
+			{
+				handle_msg(msg, &peer);
+				delete msg;
+			}
+		}
 	}
 }
 
