@@ -54,6 +54,7 @@ int Interpolator::init(ICruncherManager *icm)
 void Interpolator::calculate(const char *cod, int start)
 {
 	DLOG("Interpolator::calculate(%s, %d)", cod, start);
+#if 0
 	int empty_days = 0;
 	int day_tail = start;
 	std::list<double> xx;
@@ -122,6 +123,7 @@ void Interpolator::calculate(const char *cod, int start)
 		if (!force_until)
 			return;
 	}
+#endif
 }
 
 int Interpolator::run()
