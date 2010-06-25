@@ -1,30 +1,27 @@
 
-CREATE TABLE interpolator (
+CREATE TABLE interpolator_equation (
 	value	varchar(16),
 	date	date,
-	PP		double precision,
+	type	integer,
+	id		SERIAL UNIQUE,
 	error	double precision,
-	a0		double precision,
-	a1		double precision,
-	a2		double precision,
-	a3		double precision,
-	a4		double precision,
-	a5		double precision,
-	a6		double precision,
-	a7		double precision,
-	a8		double precision,
-	a9		double precision,
-	a10		double precision,
-	a11		double precision,
-	a12		double precision,
-	a13		double precision,
-	a14		double precision,
-	a15		double precision,
-	a16		double precision,
-	a17		double precision,
-	a18		double precision,
-	a19		double precision,
-	PRIMARY KEY (value, date)
+	PRIMARY KEY (value, date, type)
 );
+GRANT ALL ON interpolator_equation TO manu;
 
-GRANT ALL ON interpolator TO manu;
+CREATE TABLE interpolator_coefficients (
+	id		integer REFERENCES interpolator_equation(id),
+	num		integer,
+	val		double precision,
+	PRIMARY KEY (id, num)
+);
+GRANT ALL ON interpolator_coefficients TO manu;
+
+CREATE TABLE interpolator_results (
+	value		varchar(16),
+	date		date,
+	equation	integer REFERENCES interpolator_equation(id),
+	result		double precision,
+	PRIMARY KEY (value, date, equation)
+);
+GRANT ALL ON interpolator_results TO manu;
