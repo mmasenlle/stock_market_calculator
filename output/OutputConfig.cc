@@ -12,7 +12,7 @@ static const char *outp_types[] = { "all",
 		"wcount", "wopen", "wclose", "wmin", "wmean", "wmax", "wstd",
 		"wP", "wR1", "wS1", "wR2", "wS2", "wR3", "wS3", "wR4", "wS4", "wMF",
 		"wSMA", "wMAD", "wCCI", "wROC", "wAD", "wMFI", "wOBV",
-		"iPP",
+		"imin", "imax", "iemin", "iemax",
 		NULL };
 void OutputConfig::setType(const char *stype, OutpDesc *odesc)
 {
