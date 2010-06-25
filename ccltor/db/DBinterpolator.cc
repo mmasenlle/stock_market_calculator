@@ -5,76 +5,216 @@
 
 DBinterpolator::DBinterpolator(CcltorDB *db) : mdb(db) {}
 
-int DBinterpolator::insert(const char *value, int yyyymmdd,
-    double PP, double error, const double A[])
+int DBinterpolator::insert_equation(const char *value, int yyyymmdd, int type,
+		double error, int n, const double aa[])
 {
 	int ret = 0;
-	char buffer[1024];
+	char buffer[256];
 	snprintf(buffer, sizeof(buffer),
-			"INSERT INTO interpolator (value, date) VALUES ('%s', '%08d');",
-			value, yyyymmdd);
+			"SELECT id FROM interpolator_equation WHERE value = '%s' AND date = '%08d' AND type = %d;",
+			value, yyyymmdd, type);
 	PGresult *r = mdb->exec_sql(buffer);
+	int id = 0;
 	if (r)
 	{
+		ret = PQntuples(r);
+		char *str = PQgetvalue(r, 0, 0);
+		if (str) id = atoi(str);
 		PQclear(r);
-		ret++;
+	}
+	if (!id)
+	{
+		snprintf(buffer, sizeof(buffer),
+				"INSERT INTO interpolator_equation (value, date, type) "
+				"VALUES ('%s', '%08d', %d) RETURNING id;",
+				value, yyyymmdd, type);
+		r = mdb->exec_sql(buffer);
+		if (r)
+		{
+			ret = PQntuples(r);
+			char *str = PQgetvalue(r, 0, 0);
+			if (str) id = atoi(str);
+			PQclear(r);
+		}
+	}
+	if (!id)
+	{
+		return -1;
 	}
 	snprintf(buffer, sizeof(buffer),
-			"UPDATE interpolator SET PP = %.15G, error = %.15G, "
-			"a0 = %.15G, a1 = %.15G, a2 = %.15G, a3 = %.15G, a4 = %.15G, "
-			"a5 = %.15G, a6 = %.15G, a7 = %.15G, a8 = %.15G, a9 = %.15G, "
-			"a10 = %.15G, a11 = %.15G, a12 = %.15G, a13 = %.15G, a14 = %.15G, "
-			"a15 = %.15G, a16 = %.15G, a17 = %.15G, a18 = %.15G, a19 = %.15G "
-			"WHERE value = '%s' AND date = '%08d';",
-			PP, error, A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7], A[8], A[9],
-			A[10], A[11], A[12], A[13], A[14], A[15], A[16], A[17], A[18], A[19],
-			value, yyyymmdd);
+			"UPDATE interpolator_equation SET error = %.15G WHERE id = %d;", error, id);
 	if ((r = mdb->exec_sql(buffer)))
 	{
 		PQclear(r);
 		ret++;
 	}
+	for (int i = 0; i < n; i++)
+	{
+		snprintf(buffer, sizeof(buffer),
+				"INSERT INTO interpolator_coefficients (id, num) VALUES (%d, %d); "
+				"UPDATE interpolator_coefficients SET val = %.15G WHERE id = %d AND num = %d;",
+				id, i, aa[i], id, i);
+		if ((r = mdb->exec_sql(buffer)))
+		{
+			PQclear(r);
+			ret++;
+		}
+	}
+	return ret;
+}
+
+int DBinterpolator::insert_result(const char *value, int yyyymmdd, int type,
+		double result, int e_yyyymmdd)
+{
+	int ret = 0;
+	char buffer[512];
+	if (e_yyyymmdd)
+	{
+		snprintf(buffer, sizeof(buffer),
+				"SELECT id FROM interpolator_equation WHERE value = '%s' AND date = '%08d' AND type = %d;",
+				value, e_yyyymmdd, type);
+	}
+	else
+	{
+		snprintf(buffer, sizeof(buffer),
+				"SELECT id FROM interpolator_equation WHERE value = '%s' AND type = %d "
+				"ORDER BY date DESC;",
+				value, type);
+	}
+	PGresult *r = mdb->exec_sql(buffer);
+	int id = 0;
+	if (r)
+	{
+		ret = PQntuples(r);
+		char *str = PQgetvalue(r, 0, 0);
+		if (str) id = atoi(str);
+		PQclear(r);
+	}
+	if (id > 0)
+	{
+		snprintf(buffer, sizeof(buffer),
+				"INSERT INTO interpolator_results (value, date, equation) VALUES ('%s', '%08d', %d); "
+				"UPDATE interpolator_results SET result = %.15G "
+				"WHERE value = '%s' AND date = '%08d' AND equation = %d;",
+				value, yyyymmdd, id, result, value, yyyymmdd, id);
+		if ((r = mdb->exec_sql(buffer)))
+		{
+			PQclear(r);
+			ret++;
+		}
+	}
 	return ret;
 }
 
 
-static const char *interpolator_names[NR_INTERPOLATOR] = {
-		"PP", "error", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9",
-		"a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19"
-};
-int DBinterpolator::get(const char *value, int item, int yyyymmdd_start, int yyyymmdd_end,
-		std::vector<double> *data, std::vector<int> *days)
+int DBinterpolator::get_equations(const char *value, int type, int yyyymmdd_start, int yyyymmdd_end,
+		std::vector<double> *errors, std::vector<int> *days, std::vector<int> *eq_ids)
 {
 	int ret = 0;
-	if (item < NR_INTERPOLATOR)
-	{	// 0, -1 means no limit
-		if (yyyymmdd_start < 20000101) yyyymmdd_start = 20000101;
-		if (yyyymmdd_end < 20000101) yyyymmdd_end = 20500101;
-		char buffer[256];
-		snprintf(buffer, sizeof(buffer),
-				"SELECT %s, date FROM interpolator WHERE value = '%s' AND date >= '%08d' AND date <= '%08d' ORDER BY date;",
-				interpolator_names[item], value, yyyymmdd_start, yyyymmdd_end);
-		PGresult *r = mdb->exec_sql(buffer);
-		if (r)
+	if (yyyymmdd_start < 20000101) yyyymmdd_start = 20000101;
+	if (yyyymmdd_end < 20000101) yyyymmdd_end = 20500101;
+	char buffer[512];
+	snprintf(buffer, sizeof(buffer),
+			"SELECT error, date, id FROM interpolator_equation "
+			"WHERE type = %d AND value = '%s' AND date >= '%08d' AND date <= '%08d' "
+			"ORDER BY date, id;",
+			type, value, yyyymmdd_start, yyyymmdd_end);
+	PGresult *r = mdb->exec_sql(buffer);
+	if (r)
+	{
+		ret = PQntuples(r);
+		if (errors) errors->clear();
+		if (days) days->clear();
+		if (eq_ids) eq_ids->clear();
+		for (int i = 0; i < ret; i++)
 		{
-			ret = PQntuples(r);
-			if (data) data->clear();
-			if (days) days->clear();
-			for (int i = 0; i < ret; i++)
+			if (errors)
 			{
-				if (data)
-				{
-					char *str = PQgetvalue(r, i, 0);
-					if (str) data->push_back(strtod(str, NULL));
-				}
-				if (days)
-				{
-					char *str = PQgetvalue(r, i, 1);
-					if (str) days->push_back(utils::strtot(str));
-				}
+				char *str = PQgetvalue(r, i, 0);
+				if (str) errors->push_back(strtod(str, NULL));
 			}
-			PQclear(r);
+			if (days)
+			{
+				char *str = PQgetvalue(r, i, 1);
+				if (str) days->push_back(utils::strtot(str));
+			}
+			if (eq_ids)
+			{
+				char *str = PQgetvalue(r, i, 0);
+				if (str) eq_ids->push_back(strtol(str, NULL, 10));
+			}
 		}
+		PQclear(r);
+	}
+	return ret;
+}
+
+int DBinterpolator::get_coefficients(const char *value, int type, int yyyymmdd,
+		int n, double *aa, int eq_id)
+{
+	int ret = 0;
+	char buffer[512];
+	if (eq_id)
+	{
+		snprintf(buffer, sizeof(buffer),
+				"SELECT val FROM interpolator_coefficients WHERE id = %d ORDER BY num;",
+				eq_id);
+	}
+	else
+	{
+		snprintf(buffer, sizeof(buffer),
+				"SELECT val FROM interpolator_coefficients, interpolator_equation "
+				"WHERE interpolator_coefficients.id = interpolator_equation.id "
+				"AND type = %d AND value = '%s' AND date = '%08d' ORDER BY num;",
+				type, value, yyyymmdd);
+	}
+	PGresult *r = mdb->exec_sql(buffer);
+	if (r)
+	{
+		ret = PQntuples(r);
+		for (int i = 0; i < ret && i < n; i++)
+		{
+			char *str = PQgetvalue(r, i, 0);
+			if (str) aa[i] = strtod(str, NULL);
+		}
+		PQclear(r);
+	}
+	return ret;
+}
+
+int DBinterpolator::get_results(const char *value, int type, int yyyymmdd_start, int yyyymmdd_end,
+		std::vector<double> *results, std::vector<int> *days)
+{
+	int ret = 0;
+	if (yyyymmdd_start < 20000101) yyyymmdd_start = 20000101;
+	if (yyyymmdd_end < 20000101) yyyymmdd_end = 20500101;
+	char buffer[512];
+	snprintf(buffer, sizeof(buffer),
+			"SELECT result, interpolator_equation.date FROM interpolator_results, interpolator_equation "
+			"WHERE type = %d AND interpolator_results.value = '%s' AND id = equation "
+			"AND interpolator_equation.date >= '%08d' AND interpolator_equation.date <= '%08d' "
+			"ORDER BY interpolator_equation.date, equation;",
+			type, value, yyyymmdd_start, yyyymmdd_end);
+	PGresult *r = mdb->exec_sql(buffer);
+	if (r)
+	{
+		ret = PQntuples(r);
+		if (results) results->clear();
+		if (days) days->clear();
+		for (int i = 0; i < ret; i++)
+		{
+			if (results)
+			{
+				char *str = PQgetvalue(r, i, 0);
+				if (str) results->push_back(strtod(str, NULL));
+			}
+			if (days)
+			{
+				char *str = PQgetvalue(r, i, 1);
+				if (str) days->push_back(utils::strtot(str));
+			}
+		}
+		PQclear(r);
 	}
 	return ret;
 }

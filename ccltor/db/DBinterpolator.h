@@ -6,30 +6,8 @@
 
 enum
 {
-	INTERPOLATOR_PP,
-	INTERPOLATOR_error,
-	INTERPOLATOR_a0,
-	INTERPOLATOR_a1,
-	INTERPOLATOR_a2,
-	INTERPOLATOR_a3,
-	INTERPOLATOR_a4,
-	INTERPOLATOR_a5,
-	INTERPOLATOR_a6,
-	INTERPOLATOR_a7,
-	INTERPOLATOR_a8,
-	INTERPOLATOR_a9,
-	INTERPOLATOR_a10,
-	INTERPOLATOR_a11,
-	INTERPOLATOR_a12,
-	INTERPOLATOR_a13,
-	INTERPOLATOR_a14,
-	INTERPOLATOR_a15,
-	INTERPOLATOR_a16,
-	INTERPOLATOR_a17,
-	INTERPOLATOR_a18,
-	INTERPOLATOR_a19,
-	
-	NR_INTERPOLATOR
+	INTERPT_MIN5,
+	INTERPT_MAX5,
 };
 
 class DBinterpolator
@@ -39,10 +17,17 @@ class DBinterpolator
 public:
 	DBinterpolator(CcltorDB *db);
 
-	int insert(const char *value, int yyyymmdd, double PP, double error, const double A[]);
+	int insert_equation(const char *value, int yyyymmdd, int type,
+			double error, int n, const double aa[]);
+	int insert_result(const char *value, int yyyymmdd, int type,
+			double result, int e_yyyymmdd = 0);
 
-	int get(const char *value, int item, int yyyymmdd_start, int yyyymmdd_end,
-			std::vector<double> *data, std::vector<int> *days);
+	int get_equations(const char *value, int type, int yyyymmdd_start, int yyyymmdd_end,
+			std::vector<double> *errors, std::vector<int> *days, std::vector<int> *eq_ids);
+	int get_coefficients(const char *value, int type, int yyyymmdd,
+			int n, double *aa, int eq_id = 0);
+	int get_results(const char *value, int type, int yyyymmdd_start, int yyyymmdd_end,
+			std::vector<double> *results, std::vector<int> *days);
 };
 
 #endif
