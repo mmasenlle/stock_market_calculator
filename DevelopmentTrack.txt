@@ -158,6 +158,14 @@ Tue Jun  8 20:44:35 CEST 2010
   +Configuration with tasks where task has a day mask, a time and a command to
   execute.
   +The process will run the commands at the times on the enabled days.
+Comments: the commands are configured only by file and may have a day mask, a
+starting time and an interval, despite the command itself. The command is a
+string line that is converted to an array of arguments, splitted by blanks. If
+the interval is 0, the command is run every day that is not masked at its
+starting time. If starting time is 0, starting time is 00:00:00. If interval
+is negative, the command is executed only once. If interval is positive, the
+starting time is used to start the secuence. Mask days are skipped but the
+secuence is not restarted.
 
 
 Tue Jun  8 20:53:08 CEST 2010
