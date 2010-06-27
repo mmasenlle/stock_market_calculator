@@ -207,3 +207,19 @@ new tables and so on. A script with the binding of the codes is under
 construction, but even without it the system is by now operative.
 
 
+Sun Jun 27 20:52:07 CEST 2010
+ Interpolator II (step 2 towards regression)
+---------------------------------------------
+ -Change interpolation plugin to a more interesting and multivar model
+  +Create a data schema to support more generic interpolation equations
+  +Modify interpolation calculate function to do:
+   * Obtein the coefficients of the interpolator to extrapolate min from 5
+     days of min,max,close,mean_vol and close_vol
+   * The same to extrapolate max
+  +Extrapolate only for one day unless force_until
+ -Improve matrix and equation helpers
+  +Implement det using triangulization
+  +Implement an efficient diagonalization
+  +Try to use a more sophisticated approach in equation::solve (maybe CG)
+ -Study and test direct and iterative methods to obtain the coefficients
+
