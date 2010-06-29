@@ -3,19 +3,36 @@
 #include "utils.h"
 #include "matrix.h"
 
-double matrix::dot(int n, const double *u, const double *v)
+double matrix::dot(int n, const double *uu, const double *vv)
 {
 	double y = 0;
 	for (int j = 0; j < n; j++)
-		y += u[j] * v[j];
+		y += uu[j] * vv[j];
 	return y;
 }
 
-void matrix::transpose(int n, const double *M, double *MT)
+double *matrix::transp(int n, const double *A, double *At)
 {
 	for (int i = 0; i < n; i++)
 		for (int j = 0; j < n; j++)
-			MT[(j * n) + i] = M[(i * n) + j];
+			At[(j * n) + i] = A[(i * n) + j];
+	return At;
+}
+
+double *matrix::upper(int n, const double *A, double *U, double *uu)
+{
+	memcpy(U, A, n * sizeof(*U));
+	for (int p = 0; p < n; p++)
+		for (int i = p + 1; i < n; i++)
+	{
+		if (utils::equald(A[(p * n) + p], 0.0))
+			return NULL;
+		double r = A[(i * n) + p] / A[(p * n) + p];
+		if (uu) *uu++ = r;
+		for (int j = 0; j < n; j++)
+			U[(i * n) + j] = (j <= p) ? 0.0 : A[(i * n) + j] - (r * A[(p * n) + j]);
+	}
+	return U;
 }
 
 //FIXME: below here very inefficient

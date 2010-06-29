@@ -3,9 +3,12 @@
 
 namespace matrix
 {
-	double dot(int n, const double *u, const double *v);
+	double dot(int n, const double *uu, const double *vv);
 
-	void transpose(int n, const double *M, double *MT);
+	double *transp(int n, const double *A, double *At);
+	double *upper(int n, const double *A, double *U, double *uu = NULL);
+
+	
 	double det(int n, const double *M);
 	void invert(int n, const double *M, double *M_1);
 }

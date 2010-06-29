@@ -9,11 +9,16 @@ int main(int argc, char *argv[])
 	double X[] = { 11, 12, 13, 21, 22, 23, 31, 32, 33 };
 	double XT[9];
 	
-	matrix::transpose(3, X, XT);
+	matrix::transp(3, X, XT);
 	printf("\nX:  "); for (int i = 0; i < ARRAY_SIZE(X); i++) printf("%g ", X[i]);
 	printf("\nXT: "); for (int i = 0; i < ARRAY_SIZE(XT); i++) printf("%g ", XT[i]);
 	printf("\nX . XT: %g\n\n", matrix::dot(ARRAY_SIZE(X), X, XT));
 
+	double A[] = { 1, 2, 3, 4, 5, 7, 6, 8, 9 }; double U[9];
+	matrix::upper(3, A, U);
+	printf("\nU:  "); for (int i = 0; i < ARRAY_SIZE(U); i++) printf("%g ", U[i]);
+	printf("\n\n");
+#if 0
 	double f1[] = { 1, 1 };
 	double f2[] = { 0, 0, 1 };
 	printf("f1: y = 1 + x\nf2: y = x2\n\n");
@@ -33,4 +38,5 @@ int main(int argc, char *argv[])
 	printf("\nSolve (y: 10, 20, 30; X): %g %g %g error: %g (%g %g %g)\n\n",
 	    xx[0], xx[1], xx[2], error, matrix::dot(ARRAY_SIZE(xx), xx, X),
 	    matrix::dot(ARRAY_SIZE(xx), xx, &X[3]), matrix::dot(ARRAY_SIZE(xx), xx, &X[6]));
+#endif
 }
