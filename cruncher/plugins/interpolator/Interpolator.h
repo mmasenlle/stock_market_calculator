@@ -2,7 +2,7 @@
 #define _INTERPOLATOR_H_
 
 #include "DBfeeder.h"
-#include "DBtrends.h"
+#include "DBstatistics.h"
 #include "DBinterpolator.h"
 #include "ICruncher.h"
 
@@ -11,7 +11,7 @@ class Interpolator : public ICruncher
 	ICruncherManager *manager;
 	CcltorDB db;
 	DBfeeder dbfeeder;
-	DBtrends dbtrends;
+	DBstatistics dbstatistics;
 	DBinterpolator dbinterpolator;
 	
 	pthread_mutex_t mtx;

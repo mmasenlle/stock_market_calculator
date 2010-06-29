@@ -5,6 +5,7 @@
 #include <math.h>
 #include "logger.h"
 #include "utils.h"
+#include "matrix.h"
 #include "equation.h"
 #include "ICEvent.h"
 #include "DBCache.h"
@@ -16,7 +17,7 @@ extern "C" ICruncher * CRUNCHER_GETINSTANCE()
 	return new Interpolator;
 }
 
-Interpolator::Interpolator() : dbfeeder(&db), dbtrends(&db), dbinterpolator(&db)
+Interpolator::Interpolator() : dbfeeder(&db), dbstatistics(&db), dbinterpolator(&db)
 {
 	state = CRUNCHER_RUNNING;
 	trends_updates = 1;
@@ -49,22 +50,57 @@ int Interpolator::init(ICruncherManager *icm)
 	return 0;
 }
 
-#define INTERPOLATOR_ORDER (NR_INTERPOLATOR - INTERPOLATOR_a0)
+// model:
+// y(j) = a1 + a_x1(j-1) + a_x1(j-1)^2 + ... + a_x1(j-1)^r + 
+//           + a_x2(j-1) + a_x2(j-1)^2 + ... + a_x2(j-1)^r + ...
+//     ...   + a_xm(j-1) + a_xm(j-1)^2 + ... + a_xm(j-1)^r +
+//           + a_x1(j-2) + a_x1(j-2)^2 + ... + a_x1(j-2)^r + 
+//           + a_x2(j-2) + a_x2(j-2)^2 + ... + a_x2(j-2)^r + ...
+//     ...   + a_xm(j-2) + a_xm(j-2)^2 + ... + a_xm(j-2)^r + ...
+//     ...   + a_x1(j-k) + a_x1(j-k)^2 + ... + a_x1(j-k)^r + 
+//           + a_x2(j-k) + a_x2(j-k)^2 + ... + a_x2(j-k)^r +
+//     ...   + a_xm(j-k) + a_xm(j-k)^2 + ... + anxm(j-k)^r
+
+#define INTERPM_R 2
+#define INTERPM_M 5
+#define INTERPM_K 5
+
+struct x_t
+{
+	double x[INTERPM_M];
+};
+
+static void set_x(double *x, double *v)
+{
+	for (int k = 0; k < INTERPM_M; k++)
+	{
+		double xr = x[k];
+		for (int l = 0; l < INTERPM_R; l++)
+		{
+			*v++ = xr;
+			xr *= x[k];
+		}
+	}
+}
 
 void Interpolator::calculate(const char *cod, int start)
 {
 	DLOG("Interpolator::calculate(%s, %d)", cod, start);
-#if 0
 	int empty_days = 0;
 	int day_tail = start;
-	std::list<double> xx;
+	int n = 1 + (INTERPM_R * INTERPM_M * INTERPM_K);
+	std::list<x_t> xx;
 	std::list<int> empty_queue;
 	for (int day = start; force_until < day; day = utils::dec_day(day))
 	{
-		while (xx.size() < (INTERPOLATOR_ORDER + 1))
+		while (xx.size() < (n + INTERPM_K))
 		{
-			double x;
-			if (!manager->cache->dbtrends__get(&dbtrends, cod, TRENDS_P, day_tail, &x))
+			x_t x;
+			if (!manager->cache->statistics__get_day(&dbstatistics, cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MIN, day, &x.x[0]) ||
+				!manager->cache->statistics__get_day(&dbstatistics, cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MAX, day, &x.x[1]) ||
+				!manager->cache->statistics__get_day(&dbstatistics, cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_CLOSE, day, &x.x[2]) ||
+				!manager->cache->statistics__get_day(&dbstatistics, cod, STATISTICS_ITEM_VOLUME, STATISTICS_STC_MEAN, day, &x.x[3]) ||
+				!manager->cache->statistics__get_day(&dbstatistics, cod, STATISTICS_ITEM_VOLUME, STATISTICS_STC_CLOSE, day, &x.x[4]))
 			{
 				empty_queue.push_back(day_tail);
 				day_tail = utils::dec_day(day_tail);
@@ -73,7 +109,7 @@ void Interpolator::calculate(const char *cod, int start)
 				{
 					DLOG("Interpolator::calculate(%s) -> %08d..%08d (%d,%d) breaking ...",
 					    cod, day_tail, day, empty_days, xx.size());
-					if (xx.size() == (INTERPOLATOR_ORDER + 1)) break;
+					if (xx.size() == (n + INTERPM_K)) break;
 					else return;
 				}
 				continue;
@@ -87,43 +123,49 @@ void Interpolator::calculate(const char *cod, int start)
 			empty_queue.pop_front();
 			continue;
 		}
-		double aa[INTERPOLATOR_ORDER];
-		double yy[INTERPOLATOR_ORDER];
-		double X[INTERPOLATOR_ORDER][INTERPOLATOR_ORDER];
-		std::list<double>::iterator i = xx.begin();
-		for (int j = 0; j < INTERPOLATOR_ORDER; i++, j++)
+		double *bbm = new double[n];
+		double *bbM = new double[n];
+		double *uu = new double[(n + 1) * n];
+		double *A = uu + n;
+		uu[0] = 1.0;
+		double *_aa = uu + 1;
+		std::list<x_t>::iterator jj = xx.begin();
+		for (int i = 0; jj != xx.end(); jj++, i++, _aa += (INTERPM_R * INTERPM_M))
 		{
-			aa[j] = 0;
-			yy[j] = *i;
-			X[j][0] = 1.0;
+			if (i < n)
+			{
+				bbm[i] = jj->x[0];
+				bbM[i] = jj->x[1];
+			}
+			if (i >= INTERPM_K)
+			{
+#define OVERLAP ((INTERPM_K - 1) * INTERPM_R * INTERPM_M)
+				*_aa = 1.0;
+				memcpy(_aa + 1, _aa - OVERLAP, OVERLAP * sizeof(*_aa));
+				_aa += OVERLAP + 1;
+			}
+			set_x(jj->x, _aa);
 		}
 		xx.pop_front();
-		i = xx.begin();
-		for (int j = 0; j < INTERPOLATOR_ORDER; i++, j++)
-		{
-			for (int k = 1; k < INTERPOLATOR_ORDER; k++)
-			{
-				X[j][k] = X[j][k - 1] * (*i);
-			}
-		}
-		double e = equation::solve(INTERPOLATOR_ORDER, yy, (const double *)X, aa);
-		bool the_same = true;
-		for (int k = INTERPOLATOR_a0; the_same && k < NR_INTERPOLATOR; k++)
-		{
-			std::vector<double> d;
-			dbinterpolator.get(cod, k, day, day, &d, NULL);
-			the_same = (d.size() == 1 && utils::equald(aa[k - INTERPOLATOR_a0], d[0]));
-		}
-		if (!the_same)
-		{
-			double y = equation::polyval(INTERPOLATOR_ORDER, aa, yy[0]);
-			ILOG("Interpolator::calculate(%s) -> insert %08d", cod, day);
-			dbinterpolator.insert(cod, day, y, e, aa);
-		}
+		double *aa = new double[n];
+		double e = equation::solve(n, bbm, A, aa);
+		double y = matrix::dot(n, aa, uu);
+		dbinterpolator.insert_equation(cod, day, INTERPT_MIN5, e, n, aa);
+		dbinterpolator.insert_result(cod, day, INTERPT_MIN5, y, day);
+		e = equation::solve(n, bbM, A, aa);
+		y = matrix::dot(n, aa, uu);
+		dbinterpolator.insert_equation(cod, day, INTERPT_MAX5, e, n, aa);
+		dbinterpolator.insert_result(cod, day, INTERPT_MAX5, y, day);
+		ILOG("Interpolator::calculate(%s) -> insert %08d", cod, day);
+
+		delete [] bbm;
+		delete [] bbM;
+		delete [] uu;
+		delete [] aa;
+
 		if (!force_until)
 			return;
 	}
-#endif
 }
 
 int Interpolator::run()
