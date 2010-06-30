@@ -20,7 +20,7 @@ extern "C" ICruncher * CRUNCHER_GETINSTANCE()
 Interpolator::Interpolator() : dbfeeder(&db), dbstatistics(&db), dbinterpolator(&db)
 {
 	state = CRUNCHER_RUNNING;
-	trends_updates = 1;
+	stcs_updates = 1;
 	int r = pthread_mutex_init(&mtx, NULL);
 	if (r != 0 || (r = pthread_cond_init(&cond, NULL)) != 0)
 	{
@@ -63,7 +63,7 @@ int Interpolator::init(ICruncherManager *icm)
 
 #define INTERPM_R 2
 #define INTERPM_M 5
-#define INTERPM_K 5
+#define INTERPM_K 4 //5
 
 struct x_t
 {
@@ -96,11 +96,16 @@ void Interpolator::calculate(const char *cod, int start)
 		while (xx.size() < (n + INTERPM_K))
 		{
 			x_t x;
-			if (!manager->cache->statistics__get_day(&dbstatistics, cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MIN, day, &x.x[0]) ||
-				!manager->cache->statistics__get_day(&dbstatistics, cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MAX, day, &x.x[1]) ||
-				!manager->cache->statistics__get_day(&dbstatistics, cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_CLOSE, day, &x.x[2]) ||
-				!manager->cache->statistics__get_day(&dbstatistics, cod, STATISTICS_ITEM_VOLUME, STATISTICS_STC_MEAN, day, &x.x[3]) ||
-				!manager->cache->statistics__get_day(&dbstatistics, cod, STATISTICS_ITEM_VOLUME, STATISTICS_STC_CLOSE, day, &x.x[4]))
+			if (!manager->cache->statistics__get_day(&dbstatistics, cod,
+			    	STATISTICS_ITEM_PRICE, STATISTICS_STC_MIN, day_tail, &x.x[0]) ||
+				!manager->cache->statistics__get_day(&dbstatistics, cod,
+				    STATISTICS_ITEM_PRICE, STATISTICS_STC_MAX, day_tail, &x.x[1]) ||
+				!manager->cache->statistics__get_day(&dbstatistics, cod,
+				    STATISTICS_ITEM_PRICE, STATISTICS_STC_CLOSE, day_tail, &x.x[2]) ||
+				!manager->cache->statistics__get_day(&dbstatistics, cod,
+				    STATISTICS_ITEM_VOLUME, STATISTICS_STC_MEAN, day_tail, &x.x[3]) ||
+				!manager->cache->statistics__get_day(&dbstatistics, cod,
+				    STATISTICS_ITEM_VOLUME, STATISTICS_STC_CLOSE, day_tail, &x.x[4]))
 			{
 				empty_queue.push_back(day_tail);
 				day_tail = utils::dec_day(day_tail);
@@ -123,6 +128,7 @@ void Interpolator::calculate(const char *cod, int start)
 			empty_queue.pop_front();
 			continue;
 		}
+DLOG("Interpolator::calculate(%s) -> got data, constructing matrix ...", cod);
 		double *bbm = new double[n];
 		double *bbM = new double[n];
 		double *uu = new double[(n + 1) * n];
@@ -147,21 +153,28 @@ void Interpolator::calculate(const char *cod, int start)
 			set_x(jj->x, _aa);
 		}
 		xx.pop_front();
+DLOG("Interpolator::calculate(%s) -> data arranged, solving ...", cod);
 		double *aa = new double[n];
 		double e = equation::solve(n, bbm, A, aa);
+DLOG("Interpolator::calculate(%s) -> solve error: %g, evaluating on today ...", cod, e);
 		double y = matrix::dot(n, aa, uu);
-		dbinterpolator.insert_equation(cod, day, INTERPT_MIN5, e, n, aa);
-		dbinterpolator.insert_result(cod, day, INTERPT_MIN5, y, day);
-		e = equation::solve(n, bbM, A, aa);
-		y = matrix::dot(n, aa, uu);
-		dbinterpolator.insert_equation(cod, day, INTERPT_MAX5, e, n, aa);
-		dbinterpolator.insert_result(cod, day, INTERPT_MAX5, y, day);
-		ILOG("Interpolator::calculate(%s) -> insert %08d", cod, day);
+DLOG("Interpolator::calculate(%s) -> guessed tomorrow's min: %g, evaluating on yesterday ...", cod, y);
+y = matrix::dot(n, aa, A);
+DLOG("Interpolator::calculate(%s) -> guessed today's min: %g, today's min: %g, error: %g", cod, y, bbm[0], fabs(y - bbm[0]));
+
+//		dbinterpolator.insert_equation(cod, day, INTERPT_MIN5, e, n, aa);
+//		dbinterpolator.insert_result(cod, day, INTERPT_MIN5, y, day);
+//		e = equation::solve(n, bbM, A, aa);
+//		y = matrix::dot(n, aa, uu);
+//		dbinterpolator.insert_equation(cod, day, INTERPT_MAX5, e, n, aa);
+//		dbinterpolator.insert_result(cod, day, INTERPT_MAX5, y, day);
 
 		delete [] bbm;
 		delete [] bbM;
 		delete [] uu;
 		delete [] aa;
+
+		ILOG("Interpolator::calculate(%s) -> insert %08d", cod, day);
 
 		if (!force_until)
 			return;
@@ -175,10 +188,10 @@ int Interpolator::run()
 	{
 		pthread_mutex_lock(&mtx);
 		state = CRUNCHER_WAITING;
-		while (!trends_updates)
+		while (!stcs_updates)
 			pthread_cond_wait(&cond, &mtx);
 		state = CRUNCHER_RUNNING;
-		trends_updates = 0;
+		stcs_updates = 0;
 		pthread_mutex_unlock(&mtx);
 
 		int today = utils::today();
@@ -188,20 +201,20 @@ int Interpolator::run()
 		{
 			calculate(codes[i].c_str(), today);
 		}
-		ILOG("Interpolator::run() -> done for now (%08d, trends_updates: %d)", today, trends_updates);
+		ILOG("Interpolator::run() -> done for now (%08d, trends_updates: %d)", today, stcs_updates);
 	}
 	return 0;
 }
 
 int Interpolator::msg(ICMsg *msg)
 {
-	if (msg->getClass() == ICMSGCLASS_EVENT && ((ICEvent*)msg)->getEvent() == ICEVENT_TRENDS_UPDATED)
+	if (msg->getClass() == ICMSGCLASS_EVENT && ((ICEvent*)msg)->getEvent() == ICEVENT_STATISTICS_UPDATED)
 	{
 		pthread_mutex_lock(&mtx);
-		trends_updates++;
+		stcs_updates++;
 		pthread_cond_broadcast(&cond);
 		pthread_mutex_unlock(&mtx);
-		DLOG("Interpolator::msg() -> ICEVENT_TRENDS_UPDATED");
+		DLOG("Interpolator::msg() -> ICEVENT_STATISTICS_UPDATED");
 	}
 	return 0;
 }

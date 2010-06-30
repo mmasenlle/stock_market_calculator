@@ -18,7 +18,7 @@ class Interpolator : public ICruncher
 	pthread_cond_t cond;
 
 	int state;
-	int trends_updates;
+	int stcs_updates;
 	int force_until;
 
 	void calculate(const char *cod, int start);
