@@ -1,7 +1,7 @@
 #include <float.h>
 #include <math.h>
 #include <string.h>
-//#include "logger.h"
+#include "logger.h"
 #include "matrix.h"
 #include "equation.h"
 
@@ -24,7 +24,7 @@ double equation::solve(int n, const double *yy, const double *A, double *xx)
 		double e = 0;
 		for (int i = 0; i < n; i++)
 			e += fabs(yy[i] - matrix::dot(n, &A[i*n], _xx));
-//if (k < 2) DLOG("equation::solve() -> k: %d, e: %g error: %g\n", k, e, error);
+if (k < 2) DLOG("equation::solve() -> k: %d, e: %g error: %g\n", k, e, error);
 		if (e < error)
 		{
 			error = e;

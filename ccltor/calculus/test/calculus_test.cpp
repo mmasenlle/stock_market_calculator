@@ -7,16 +7,31 @@
 int main(int argc, char *argv[])
 {
 	double X[] = { 11, 12, 13, 21, 22, 23, 31, 32, 33 };
-	double XT[9];
+	double C[9],XT[9];
 	
 	matrix::transp(3, X, XT);
 	printf("\nX:  "); for (int i = 0; i < ARRAY_SIZE(X); i++) printf("%g ", X[i]);
 	printf("\nXT: "); for (int i = 0; i < ARRAY_SIZE(XT); i++) printf("%g ", XT[i]);
-	printf("\nX . XT: %g\n\n", matrix::dot(ARRAY_SIZE(X), X, XT));
+	printf("\nX . XT: %g", matrix::dot(ARRAY_SIZE(X), X, XT));
+	matrix::mul(3, X, XT, C);
+	printf("\nX * XT:  "); for (int i = 0; i < ARRAY_SIZE(C); i++) printf("%g ", C[i]);
 
-	double A[] = { 1, 2, 3, 4, 5, 7, 6, 8, 9 }; double U[9];
-	matrix::upper(3, A, U);
+	double A[] = { 1, 2, 3, 4, 5, 7, 6, 8, 9 };
+//	double A[] = { 1, -1, 0, -1, 1, -1, 0, -1, 1 };
+	printf("\nA:  "); for (int i = 0; i < ARRAY_SIZE(A); i++) printf("%g ", A[i]);
+	double L[9],U[9];
+	matrix::mul(3, A, A, C);
+	printf("\nA * A:  "); for (int i = 0; i < ARRAY_SIZE(C); i++) printf("%g ", C[i]);
+	matrix::lu(3, A, L, U);
+	printf("\nL:  "); for (int i = 0; i < ARRAY_SIZE(L); i++) printf("%g ", L[i]);
 	printf("\nU:  "); for (int i = 0; i < ARRAY_SIZE(U); i++) printf("%g ", U[i]);
+	matrix::mul(3, L, U, C);
+	printf("\nLU:  "); for (int i = 0; i < ARRAY_SIZE(C); i++) printf("%g ", C[i]);
+	matrix::lu(3, X, L, U);
+	printf("\nL:  "); for (int i = 0; i < ARRAY_SIZE(L); i++) printf("%g ", L[i]);
+	printf("\nU:  "); for (int i = 0; i < ARRAY_SIZE(U); i++) printf("%g ", U[i]);
+	matrix::mul(3, L, U, C);
+	printf("\nX->LU->X:  "); for (int i = 0; i < ARRAY_SIZE(C); i++) printf("%g ", C[i]);
 	printf("\n\n");
 #if 0
 	double f1[] = { 1, 1 };

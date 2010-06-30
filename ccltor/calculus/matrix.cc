@@ -11,6 +11,16 @@ double matrix::dot(int n, const double *uu, const double *vv)
 	return y;
 }
 
+double *matrix::mul(int n, const double *A, const double *B, double *C)
+{
+	memset(C, 0, n * n * sizeof(*C));
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < n; j++)
+			for (int k = 0; k < n; k++)
+				C[(i * n) + j] += (A[(i * n) + k] * B[(k * n) + j]);
+	return C;
+}
+
 double *matrix::transp(int n, const double *A, double *At)
 {
 	for (int i = 0; i < n; i++)
@@ -19,18 +29,25 @@ double *matrix::transp(int n, const double *A, double *At)
 	return At;
 }
 
-double *matrix::upper(int n, const double *A, double *U, double *uu)
+double *matrix::lu(int n, const double *A, double *L, double *U)
 {
-	memcpy(U, A, n * sizeof(*U));
+	memset(L, 0, n * n * sizeof(*L));
+	memcpy(U, A, n * n * sizeof(*U));
 	for (int p = 0; p < n; p++)
-		for (int i = p + 1; i < n; i++)
 	{
-		if (utils::equald(A[(p * n) + p], 0.0))
+		if (utils::equald(U[(p * n) + p], 0.0))
 			return NULL;
-		double r = A[(i * n) + p] / A[(p * n) + p];
-		if (uu) *uu++ = r;
-		for (int j = 0; j < n; j++)
-			U[(i * n) + j] = (j <= p) ? 0.0 : A[(i * n) + j] - (r * A[(p * n) + j]);
+		L[(p * n) + p] = 1.0;
+		for (int i = p + 1; i < n; i++)
+		{
+			if (!utils::equald(U[(i * n) + p], 0.0))
+			{
+				L[(i * n) + p] = U[(i * n) + p] / U[(p * n) + p];
+				U[(i * n) + p] = 0.0;
+				for (int j = p + 1; j < n; j++)
+					U[(i * n) + j] -= (L[(i * n) + p] * U[(p * n) + j]);
+			}
+		}
 	}
 	return U;
 }
