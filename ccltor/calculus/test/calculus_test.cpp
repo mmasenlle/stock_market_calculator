@@ -27,13 +27,21 @@ int main(int argc, char *argv[])
 	printf("\nU:  "); for (int i = 0; i < ARRAY_SIZE(U); i++) printf("%g ", U[i]);
 	matrix::mul(3, L, U, C);
 	printf("\nLU:  "); for (int i = 0; i < ARRAY_SIZE(C); i++) printf("%g ", C[i]);
+
+	double xx[3], bb[3] = { 6, 16, 23 };
+	equation::linsolve(3, bb, L, U, xx);
+	printf("\nxx:  "); for (int i = 0; i < ARRAY_SIZE(xx); i++) printf("%g ", xx[i]);
+	double cc[3] = { 4, 8, 11 };
+	equation::linsolve(3, cc, L, U, xx);
+	printf("\nxx:  "); for (int i = 0; i < ARRAY_SIZE(xx); i++) printf("%g ", xx[i]);
+#if 0	
 	matrix::lu(3, X, L, U);
 	printf("\nL:  "); for (int i = 0; i < ARRAY_SIZE(L); i++) printf("%g ", L[i]);
 	printf("\nU:  "); for (int i = 0; i < ARRAY_SIZE(U); i++) printf("%g ", U[i]);
 	matrix::mul(3, L, U, C);
 	printf("\nX->LU->X:  "); for (int i = 0; i < ARRAY_SIZE(C); i++) printf("%g ", C[i]);
 	printf("\n\n");
-#if 0
+
 	double f1[] = { 1, 1 };
 	double f2[] = { 0, 0, 1 };
 	printf("f1: y = 1 + x\nf2: y = x2\n\n");
