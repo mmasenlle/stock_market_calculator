@@ -128,7 +128,7 @@ void Interpolator::calculate(const char *cod, int start)
 			empty_queue.pop_front();
 			continue;
 		}
-DLOG("Interpolator::calculate(%s) -> got data, constructing matrix ...", cod);
+//DLOG("Interpolator::calculate(%s) -> got data, constructing matrix ...", cod);
 		double *bbm = new double[n];
 		double *bbM = new double[n];
 		double *uu = new double[(n + 1) * n];
@@ -153,10 +153,20 @@ DLOG("Interpolator::calculate(%s) -> got data, constructing matrix ...", cod);
 			set_x(jj->x, _aa);
 		}
 		xx.pop_front();
-DLOG("Interpolator::calculate(%s) -> data arranged, solving ...", cod);
+//for (int i = 0; i < n; i++) for (int j = 0; j < n; j++) DLOG("a%d,%d: %g", i, j, A[(i*n)+j]);
+//DLOG("Interpolator::calculate(%s) -> lu ...", cod);
+		double *L = new double[n*n];
+		double *U = new double[n*n];
+		matrix::lu(n, A, L, U);
+//DLOG("Interpolator::calculate(%s) -> data arranged, solving ...", cod);
 		double *aa = new double[n];
-		double e = equation::solve(n, bbm, A, aa);
-DLOG("Interpolator::calculate(%s) -> solve error: %g, evaluating on today ...", cod, e);
+//		memset(aa, 0, n * sizeof(*aa));
+		equation::linsolve(n, bbm, L, U, aa);
+
+		
+//		double e = equation::solve(n, bbm, A, aa);
+//DLOG("Interpolator::calculate(%s) -> solve error: %g, evaluating on today ...", cod, e);
+//DLOG("Interpolator::calculate(%s) -> solved, evaluating on today ...", cod);
 		double y = matrix::dot(n, aa, uu);
 DLOG("Interpolator::calculate(%s) -> guessed tomorrow's min: %g, evaluating on yesterday ...", cod, y);
 y = matrix::dot(n, aa, A);
@@ -169,6 +179,8 @@ DLOG("Interpolator::calculate(%s) -> guessed today's min: %g, today's min: %g, e
 //		dbinterpolator.insert_equation(cod, day, INTERPT_MAX5, e, n, aa);
 //		dbinterpolator.insert_result(cod, day, INTERPT_MAX5, y, day);
 
+		delete [] L;
+		delete [] U;
 		delete [] bbm;
 		delete [] bbM;
 		delete [] uu;
