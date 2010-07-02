@@ -222,4 +222,13 @@ Sun Jun 27 20:52:07 CEST 2010
   +Implement an efficient diagonalization
   +Try to use a more sophisticated approach in equation::solve (maybe CG)
  -Study and test direct and iterative methods to obtain the coefficients
+Comments: as a concept of probe is quite finished. The system is solved using
+LU factorization and the model to use is open to several vars and exponent and
+time orders. The issues that remain are: the results obtained are bad (there
+is few data yet) and the data generated for the coefficients is huge; is worth
+storing ? And how much days calculate forward or backward with each obtained
+equation ?
+Anyway, there is time to think about it because it would be good to feed much
+more data to run the regression.
+
 
