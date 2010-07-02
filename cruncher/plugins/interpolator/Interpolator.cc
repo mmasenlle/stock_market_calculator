@@ -61,8 +61,8 @@ int Interpolator::init(ICruncherManager *icm)
 //           + a_x2(j-k) + a_x2(j-k)^2 + ... + a_x2(j-k)^r +
 //     ...   + a_xm(j-k) + a_xm(j-k)^2 + ... + anxm(j-k)^r
 
-#define INTERPM_R 2
-#define INTERPM_M 5
+#define INTERPM_R 3
+#define INTERPM_M 4 //5
 #define INTERPM_K 4 //5
 
 struct x_t
@@ -102,10 +102,10 @@ void Interpolator::calculate(const char *cod, int start)
 				    STATISTICS_ITEM_PRICE, STATISTICS_STC_MAX, day_tail, &x.x[1]) ||
 				!manager->cache->statistics__get_day(&dbstatistics, cod,
 				    STATISTICS_ITEM_PRICE, STATISTICS_STC_CLOSE, day_tail, &x.x[2]) ||
+//				!manager->cache->statistics__get_day(&dbstatistics, cod,
+//				    STATISTICS_ITEM_VOLUME, STATISTICS_STC_MEAN, day_tail, &x.x[4]) ||
 				!manager->cache->statistics__get_day(&dbstatistics, cod,
-				    STATISTICS_ITEM_VOLUME, STATISTICS_STC_MEAN, day_tail, &x.x[3]) ||
-				!manager->cache->statistics__get_day(&dbstatistics, cod,
-				    STATISTICS_ITEM_VOLUME, STATISTICS_STC_CLOSE, day_tail, &x.x[4]))
+				    STATISTICS_ITEM_VOLUME, STATISTICS_STC_CLOSE, day_tail, &x.x[3]))
 			{
 				empty_queue.push_back(day_tail);
 				day_tail = utils::dec_day(day_tail);
@@ -128,11 +128,15 @@ void Interpolator::calculate(const char *cod, int start)
 			empty_queue.pop_front();
 			continue;
 		}
-//DLOG("Interpolator::calculate(%s) -> got data, constructing matrix ...", cod);
-		double *bbm = new double[n];
-		double *bbM = new double[n];
-		double *uu = new double[(n + 1) * n];
-		double *A = uu + n;
+		double *mem = new double[4*n + 3*n*n];
+		double *bbm = mem;
+		double *bbM = mem + n;
+		double *aa = mem + 2*n;
+		double *uu = mem + 3*n;
+		double *A = mem + 4*n;
+		double *L = A + n*n;
+		double *U = L + n*n;
+
 		uu[0] = 1.0;
 		double *_aa = uu + 1;
 		std::list<x_t>::iterator jj = xx.begin();
@@ -153,41 +157,20 @@ void Interpolator::calculate(const char *cod, int start)
 			set_x(jj->x, _aa);
 		}
 		xx.pop_front();
-//for (int i = 0; i < n; i++) for (int j = 0; j < n; j++) DLOG("a%d,%d: %g", i, j, A[(i*n)+j]);
-//DLOG("Interpolator::calculate(%s) -> lu ...", cod);
-		double *L = new double[n*n];
-		double *U = new double[n*n];
+
 		matrix::lu(n, A, L, U);
-//DLOG("Interpolator::calculate(%s) -> data arranged, solving ...", cod);
-		double *aa = new double[n];
-//		memset(aa, 0, n * sizeof(*aa));
+
 		equation::linsolve(n, bbm, L, U, aa);
+		dbinterpolator.insert_equation(cod, day, INTERPT_MIN5, 0, n, aa);
+		dbinterpolator.insert_result(cod, day, INTERPT_MIN5, matrix::dot(n, aa, uu), day);
 
-		
-//		double e = equation::solve(n, bbm, A, aa);
-//DLOG("Interpolator::calculate(%s) -> solve error: %g, evaluating on today ...", cod, e);
-//DLOG("Interpolator::calculate(%s) -> solved, evaluating on today ...", cod);
-		double y = matrix::dot(n, aa, uu);
-DLOG("Interpolator::calculate(%s) -> guessed tomorrow's min: %g, evaluating on yesterday ...", cod, y);
-y = matrix::dot(n, aa, A);
-DLOG("Interpolator::calculate(%s) -> guessed today's min: %g, today's min: %g, error: %g", cod, y, bbm[0], fabs(y - bbm[0]));
+		equation::linsolve(n, bbM, L, U, aa);
+		dbinterpolator.insert_equation(cod, day, INTERPT_MAX5, 0, n, aa);
+		dbinterpolator.insert_result(cod, day, INTERPT_MAX5, matrix::dot(n, aa, uu), day);
 
-//		dbinterpolator.insert_equation(cod, day, INTERPT_MIN5, e, n, aa);
-//		dbinterpolator.insert_result(cod, day, INTERPT_MIN5, y, day);
-//		e = equation::solve(n, bbM, A, aa);
-//		y = matrix::dot(n, aa, uu);
-//		dbinterpolator.insert_equation(cod, day, INTERPT_MAX5, e, n, aa);
-//		dbinterpolator.insert_result(cod, day, INTERPT_MAX5, y, day);
-
-		delete [] L;
-		delete [] U;
-		delete [] bbm;
-		delete [] bbM;
-		delete [] uu;
-		delete [] aa;
+		delete [] mem;
 
 		ILOG("Interpolator::calculate(%s) -> insert %08d", cod, day);
-
 		if (!force_until)
 			return;
 	}

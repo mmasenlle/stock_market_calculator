@@ -8,6 +8,7 @@ CREATE TABLE interpolator_equation (
 	PRIMARY KEY (value, date, type)
 );
 GRANT ALL ON interpolator_equation TO manu;
+GRANT ALL ON interpolator_equation_id_seq TO manu;
 
 CREATE TABLE interpolator_coefficients (
 	id		integer REFERENCES interpolator_equation(id),

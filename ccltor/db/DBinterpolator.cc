@@ -11,36 +11,23 @@ int DBinterpolator::insert_equation(const char *value, int yyyymmdd, int type,
 	int ret = 0;
 	char buffer[256];
 	snprintf(buffer, sizeof(buffer),
+				"INSERT INTO interpolator_equation (value, date, type) VALUES ('%s', '%08d', %d);",
+				value, yyyymmdd, type);
+	PGresult *r = mdb->exec_sql(buffer);
+	if (r) PQclear(r);
+#ifdef DBINTERPOLATOR_ST_EQUATION_DATA
+	snprintf(buffer, sizeof(buffer),
 			"SELECT id FROM interpolator_equation WHERE value = '%s' AND date = '%08d' AND type = %d;",
 			value, yyyymmdd, type);
-	PGresult *r = mdb->exec_sql(buffer);
 	int id = 0;
-	if (r)
+	if ((r = mdb->exec_sql(buffer)))
 	{
 		ret = PQntuples(r);
 		char *str = PQgetvalue(r, 0, 0);
 		if (str) id = atoi(str);
 		PQclear(r);
 	}
-	if (!id)
-	{
-		snprintf(buffer, sizeof(buffer),
-				"INSERT INTO interpolator_equation (value, date, type) "
-				"VALUES ('%s', '%08d', %d) RETURNING id;",
-				value, yyyymmdd, type);
-		r = mdb->exec_sql(buffer);
-		if (r)
-		{
-			ret = PQntuples(r);
-			char *str = PQgetvalue(r, 0, 0);
-			if (str) id = atoi(str);
-			PQclear(r);
-		}
-	}
-	if (!id)
-	{
-		return -1;
-	}
+	if (!id) return -1;
 	snprintf(buffer, sizeof(buffer),
 			"UPDATE interpolator_equation SET error = %.15G WHERE id = %d;", error, id);
 	if ((r = mdb->exec_sql(buffer)))
@@ -51,15 +38,23 @@ int DBinterpolator::insert_equation(const char *value, int yyyymmdd, int type,
 	for (int i = 0; i < n; i++)
 	{
 		snprintf(buffer, sizeof(buffer),
-				"INSERT INTO interpolator_coefficients (id, num) VALUES (%d, %d); "
+				"INSERT INTO interpolator_coefficients (id, num) VALUES (%d, %d); ",
+				id, i);
+		if ((r = mdb->exec_sql(buffer)))
+		{
+			PQclear(r);
+			ret++;
+		}
+		snprintf(buffer, sizeof(buffer),
 				"UPDATE interpolator_coefficients SET val = %.15G WHERE id = %d AND num = %d;",
-				id, i, aa[i], id, i);
+				aa[i], id, i);
 		if ((r = mdb->exec_sql(buffer)))
 		{
 			PQclear(r);
 			ret++;
 		}
 	}
+#endif
 	return ret;
 }
 
@@ -93,10 +88,17 @@ int DBinterpolator::insert_result(const char *value, int yyyymmdd, int type,
 	if (id > 0)
 	{
 		snprintf(buffer, sizeof(buffer),
-				"INSERT INTO interpolator_results (value, date, equation) VALUES ('%s', '%08d', %d); "
+				"INSERT INTO interpolator_results (value, date, equation) VALUES ('%s', '%08d', %d); ",
+				value, yyyymmdd, id);
+		if ((r = mdb->exec_sql(buffer)))
+		{
+			PQclear(r);
+			ret++;
+		}
+		snprintf(buffer, sizeof(buffer),
 				"UPDATE interpolator_results SET result = %.15G "
-				"WHERE value = '%s' AND date = '%08d' AND equation = %d;",
-				value, yyyymmdd, id, result, value, yyyymmdd, id);
+			    "WHERE value = '%s' AND date = '%08d' AND equation = %d;",
+				result, value, yyyymmdd, id);
 		if ((r = mdb->exec_sql(buffer)))
 		{
 			PQclear(r);
