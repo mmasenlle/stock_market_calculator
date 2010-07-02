@@ -52,7 +52,20 @@ double *matrix::lu(int n, const double *A, double *L, double *U)
 	return U;
 }
 
-//FIXME: below here very inefficient
+double matrix::det(int n, const double *A)
+{
+	double *L = new double[n*n];
+	double *U = new double[n*n];
+	lu(n, A, L, U);
+	double det = 1.0;
+	for (int i = 0; i < n; i++)
+		det *= U[i*n + i];
+	delete [] L;
+	delete [] U;
+	return det;
+}
+
+/*FIXME: below here very inefficient
 static double matrix_cofactor(int n, const double *M, int i, int j)
 {
 	double subM[n - 1][n - 1];
@@ -86,3 +99,4 @@ void matrix::invert(int n, const double *M, double *M_1)
 				M_1[(j * n) + i] = matrix_cofactor(n, M, i, j) / detM;
 	}
 }
+*/

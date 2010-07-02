@@ -22,6 +22,8 @@ int main(int argc, char *argv[])
 	double L[9],U[9];
 	matrix::mul(3, A, A, C);
 	printf("\nA * A:  "); for (int i = 0; i < ARRAY_SIZE(C); i++) printf("%g ", C[i]);
+	printf("\ndet(A): %g; det(X): %g; det(XT): %g; det(A*A): %g",
+	    matrix::det(3, A), matrix::det(3, X), matrix::det(3, XT), matrix::det(3, C));
 	matrix::lu(3, A, L, U);
 	printf("\nL:  "); for (int i = 0; i < ARRAY_SIZE(L); i++) printf("%g ", L[i]);
 	printf("\nU:  "); for (int i = 0; i < ARRAY_SIZE(U); i++) printf("%g ", U[i]);

@@ -7,10 +7,9 @@ namespace matrix
 	double *mul(int n, const double *A, const double *B, double *C);
 	double *transp(int n, const double *A, double *At);
 	double *lu(int n, const double *A, double *L, double *U);
+	double det(int n, const double *A);
 
-	
-	double det(int n, const double *M);
-	void invert(int n, const double *M, double *M_1);
+//	void invert(int n, const double *M, double *M_1);
 }
 
 #endif
