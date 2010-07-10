@@ -232,3 +232,17 @@ Anyway, there is time to think about it because it would be good to feed much
 more data to run the regression.
 
 
+Sat Jul 10 22:46:55 CEST 2010
+ Regression I (not the real one)
+----------------------------------
+ -Create a cruncher plugin to calculate one regression function (not for each
+ value), using interpolator as a base:
+  +Construct the matrix from all the values filtering by count > m
+  +Calculate the coefficient vectors based on the model using the required data
+  from the matrix and going backward with a certain overlap on the matrix's
+  rows, maybe 75%.
+  +Calculate the squared errors for each coefficient vector for the whole set
+  of data.
+  +Apply and evolution algorithm on the vectors to improve the best function
+  +Evaluate the function for the values, going back if force_until
+
