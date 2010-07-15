@@ -9,25 +9,25 @@ int main(int argc, char *argv[])
 	double X[] = { 11, 12, 13, 21, 22, 23, 31, 32, 33 };
 	double C[9],XT[9];
 	
-	matrix::transp(3, X, XT);
+	matrix::transp(3, 3, X, XT);
 	printf("\nX:  "); for (int i = 0; i < ARRAY_SIZE(X); i++) printf("%g ", X[i]);
 	printf("\nXT: "); for (int i = 0; i < ARRAY_SIZE(XT); i++) printf("%g ", XT[i]);
 	printf("\nX . XT: %g", matrix::dot(ARRAY_SIZE(X), X, XT));
-	matrix::mul(3, X, XT, C);
+	matrix::mul(3, 3, 3, X, XT, C);
 	printf("\nX * XT:  "); for (int i = 0; i < ARRAY_SIZE(C); i++) printf("%g ", C[i]);
 
 	double A[] = { 1, 2, 3, 4, 5, 7, 6, 8, 9 };
 //	double A[] = { 1, -1, 0, -1, 1, -1, 0, -1, 1 };
 	printf("\nA:  "); for (int i = 0; i < ARRAY_SIZE(A); i++) printf("%g ", A[i]);
 	double L[9],U[9];
-	matrix::mul(3, A, A, C);
+	matrix::mul(3, 3, 3, A, A, C);
 	printf("\nA * A:  "); for (int i = 0; i < ARRAY_SIZE(C); i++) printf("%g ", C[i]);
 	printf("\ndet(A): %g; det(X): %g; det(XT): %g; det(A*A): %g",
 	    matrix::det(3, A), matrix::det(3, X), matrix::det(3, XT), matrix::det(3, C));
 	matrix::lu(3, A, L, U);
 	printf("\nL:  "); for (int i = 0; i < ARRAY_SIZE(L); i++) printf("%g ", L[i]);
 	printf("\nU:  "); for (int i = 0; i < ARRAY_SIZE(U); i++) printf("%g ", U[i]);
-	matrix::mul(3, L, U, C);
+	matrix::mul(3, 3, 3, L, U, C);
 	printf("\nLU:  "); for (int i = 0; i < ARRAY_SIZE(C); i++) printf("%g ", C[i]);
 
 	double xx[3], bb[3] = { 6, 16, 23 };

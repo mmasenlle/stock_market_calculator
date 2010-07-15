@@ -11,21 +11,21 @@ double matrix::dot(int n, const double *uu, const double *vv)
 	return y;
 }
 
-double *matrix::mul(int n, const double *A, const double *B, double *C)
+double *matrix::mul(int m, int n, int p, const double *A, const double *B, double *C)
 {
-	memset(C, 0, n * n * sizeof(*C));
-	for (int i = 0; i < n; i++)
-		for (int j = 0; j < n; j++)
+	memset(C, 0, m * p * sizeof(*C));
+	for (int i = 0; i < m; i++)
+		for (int j = 0; j < p; j++)
 			for (int k = 0; k < n; k++)
-				C[(i * n) + j] += (A[(i * n) + k] * B[(k * n) + j]);
+				C[(i * n) + j] += (A[(i * n) + k] * B[(k * p) + j]);
 	return C;
 }
 
-double *matrix::transp(int n, const double *A, double *At)
+double *matrix::transp(int m, int n, const double *A, double *At)
 {
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < m; i++)
 		for (int j = 0; j < n; j++)
-			At[(j * n) + i] = A[(i * n) + j];
+			At[(j * m) + i] = A[(i * n) + j];
 	return At;
 }
 

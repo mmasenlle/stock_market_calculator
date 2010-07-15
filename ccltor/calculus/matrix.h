@@ -4,8 +4,8 @@
 namespace matrix
 {
 	double dot(int n, const double *uu, const double *vv);
-	double *mul(int n, const double *A, const double *B, double *C);
-	double *transp(int n, const double *A, double *At);
+	double *mul(int m, int n, int p, const double *A, const double *B, double *C);
+	double *transp(int m, int n, const double *A, double *At);
 	double *lu(int n, const double *A, double *L, double *U);
 	double det(int n, const double *A);
 
