@@ -8,6 +8,8 @@ enum
 {
 	INTERPT_MIN5,
 	INTERPT_MAX5,
+	INTERPT_RMIN5,
+	INTERPT_RMAX5,
 };
 
 class DBinterpolator

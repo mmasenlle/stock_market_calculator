@@ -86,94 +86,121 @@ static void set_x(double *x, double *v)
 void Regression::calculate(const char *cod, int start)
 {
 	DLOG("Regression::calculate(%s, %d)", cod, start);
-	int empty_days = 0;
-	int day_tail = start;
 	int n = 1 + (INTERPM_R * INTERPM_M * INTERPM_K);
 	std::list<x_t> xx;
 	std::list<int> empty_queue;
-	for (int day = start; force_until < day; day = utils::dec_day(day))
+	for (int day_tail = start, empty_days = 0;; day_tail = utils::dec_day(day_tail))
 	{
-		while (xx.size() < (n + INTERPM_K))
+		x_t x;
+		if (!manager->cache->statistics__get_day(&dbstatistics, cod,
+		    STATISTICS_ITEM_PRICE, STATISTICS_STC_MIN, day_tail, &x.x[0]) ||
+		    !manager->cache->statistics__get_day(&dbstatistics, cod,
+			    STATISTICS_ITEM_PRICE, STATISTICS_STC_MAX, day_tail, &x.x[1]) ||
+		    !manager->cache->statistics__get_day(&dbstatistics, cod,
+			    STATISTICS_ITEM_PRICE, STATISTICS_STC_CLOSE, day_tail, &x.x[2]) ||
+//			!manager->cache->statistics__get_day(&dbstatistics, cod,
+//			    STATISTICS_ITEM_VOLUME, STATISTICS_STC_MEAN, day_tail, &x.x[4]) ||
+		    !manager->cache->statistics__get_day(&dbstatistics, cod,
+			    STATISTICS_ITEM_VOLUME, STATISTICS_STC_CLOSE, day_tail, &x.x[3]))
 		{
-			x_t x;
-			if (!manager->cache->statistics__get_day(&dbstatistics, cod,
-			    	STATISTICS_ITEM_PRICE, STATISTICS_STC_MIN, day_tail, &x.x[0]) ||
-				!manager->cache->statistics__get_day(&dbstatistics, cod,
-				    STATISTICS_ITEM_PRICE, STATISTICS_STC_MAX, day_tail, &x.x[1]) ||
-				!manager->cache->statistics__get_day(&dbstatistics, cod,
-				    STATISTICS_ITEM_PRICE, STATISTICS_STC_CLOSE, day_tail, &x.x[2]) ||
-//				!manager->cache->statistics__get_day(&dbstatistics, cod,
-//				    STATISTICS_ITEM_VOLUME, STATISTICS_STC_MEAN, day_tail, &x.x[4]) ||
-				!manager->cache->statistics__get_day(&dbstatistics, cod,
-				    STATISTICS_ITEM_VOLUME, STATISTICS_STC_CLOSE, day_tail, &x.x[3]))
+			empty_queue.push_back(day_tail);
+			if (!force_until || day_tail < force_until) empty_days++;
+			if (empty_days > 15)
 			{
-				empty_queue.push_back(day_tail);
-				day_tail = utils::dec_day(day_tail);
-				if (!force_until || day_tail < force_until) empty_days++;
-				if (empty_days > 15)
-				{
-					DLOG("Regression::calculate(%s) -> %08d..%08d (%d,%d) breaking ...",
-					    cod, day_tail, day, empty_days, xx.size());
-					if (xx.size() == (n + INTERPM_K)) break;
-					else return;
-				}
-				continue;
+				DLOG("Regression::calculate(%s) -> %08d..%08d (%d,%d) breaking ...",
+				    cod, day_tail, start, empty_days, xx.size());
+				if (xx.size() >= (n + INTERPM_K)) break;
+				else return;
 			}
-			empty_days = 0;
-			xx.push_back(x);
-			day_tail = utils::dec_day(day_tail);
+			continue;
 		}
+		empty_days = 0;
+		xx.push_back(x);
+	}
+	int m = xx.size() - INTERPM_K;
+	DLOG("Regression::calculate(%s, %d) -> (m, n): %d, %d", cod, start, m, n);
+	double *bbm = new double[m];
+	double *bbM = new double[m];
+	double *uu = new double[(m + 1) * n];
+	double *A = uu + n;
+	uu[0] = 1.0;
+	double *_aa = uu + 1;
+	std::list<x_t>::iterator jj = xx.begin();
+	for (int i = 0; jj != xx.end(); jj++, i++, _aa += (INTERPM_R * INTERPM_M))
+	{
+		if (i < m)
+		{
+			bbm[i] = jj->x[0];
+			bbM[i] = jj->x[1];
+		}
+		if (i >= INTERPM_K)
+		{
+#define OVERLAP ((INTERPM_K - 1) * INTERPM_R * INTERPM_M)
+			*_aa = 1.0;
+			memcpy(_aa + 1, _aa - OVERLAP, OVERLAP * sizeof(*_aa));
+			_aa += OVERLAP + 1;
+		}
+		set_x(jj->x, _aa);
+	}
+	DLOG("Regression::calculate(%s, %d) -> A", cod, start);
+	double *At = new double[n * m];
+	matrix::transp(m, n, A, At);
+	double *AtA = new double[n * n];
+	double *Atbbm = new double[n];
+	double *AtbbM = new double[n];
+	matrix::mul(n, m, n, At, A, AtA);
+	DLOG("Regression::calculate(%s, %d) -> AtA", cod, start);
+	matrix::mul(n, m, 1, At, bbm, Atbbm);
+	matrix::mul(n, m, 1, At, bbM, AtbbM);
+	delete [] At;
+	double *L = new double[n * n];
+	double *U = new double[n * n];
+	matrix::lu(n, AtA, L, U);
+	delete [] AtA;
+	double *aam = new double[n];
+	double *aaM = new double[n];
+	equation::linsolve(n, Atbbm, L, U, aam);
+	equation::linsolve(n, AtbbM, L, U, aaM);
+	delete [] L;
+	delete [] U;
+	delete [] Atbbm;
+	delete [] AtbbM;
+	DLOG("Regression::calculate(%s, %d) -> aam, aaM", cod, start);
+	double em = 0, eM = 0;
+	for (int i = 0; i < m; i++)
+	{
+		em += fabs(matrix::dot(n, aam, A + (n * i)) - bbm[i]);
+		eM += fabs(matrix::dot(n, aaM, A + (n * i)) - bbM[i]);
+	}
+	DLOG("Regression::calculate(%s, %d) -> em: %g, eM: %g", cod, start, em, eM);
+	dbinterpolator.insert_equation(cod, start, INTERPT_RMIN5, em, n, aam);
+	dbinterpolator.insert_equation(cod, start, INTERPT_RMAX5, eM, n, aaM);
+	DLOG("Regression::calculate(%s, %d) -> insert_equation", cod, start);
+	for (int day = start, i = -1; force_until < day; day = utils::dec_day(day))
+	{
 		if (!empty_queue.empty() && empty_queue.front() == day)
 		{
 			empty_queue.pop_front();
 			continue;
 		}
-		double *mem = new double[4*n + 3*n*n];
-		double *bbm = mem;
-		double *bbM = mem + n;
-		double *aa = mem + 2*n;
-		double *uu = mem + 3*n;
-		double *A = mem + 4*n;
-		double *L = A + n*n;
-		double *U = L + n*n;
-
-		uu[0] = 1.0;
-		double *_aa = uu + 1;
-		std::list<x_t>::iterator jj = xx.begin();
-		for (int i = 0; jj != xx.end(); jj++, i++, _aa += (INTERPM_R * INTERPM_M))
-		{
-			if (i < n)
-			{
-				bbm[i] = jj->x[0];
-				bbM[i] = jj->x[1];
-			}
-			if (i >= INTERPM_K)
-			{
-#define OVERLAP ((INTERPM_K - 1) * INTERPM_R * INTERPM_M)
-				*_aa = 1.0;
-				memcpy(_aa + 1, _aa - OVERLAP, OVERLAP * sizeof(*_aa));
-				_aa += OVERLAP + 1;
-			}
-			set_x(jj->x, _aa);
-		}
-		xx.pop_front();
-
-		matrix::lu(n, A, L, U);
-
-		equation::linsolve(n, bbm, L, U, aa);
-		dbinterpolator.insert_equation(cod, day, INTERPT_MIN5, 0, n, aa);
-		dbinterpolator.insert_result(cod, day, INTERPT_MIN5, matrix::dot(n, aa, uu), day);
-
-		equation::linsolve(n, bbM, L, U, aa);
-		dbinterpolator.insert_equation(cod, day, INTERPT_MAX5, 0, n, aa);
-		dbinterpolator.insert_result(cod, day, INTERPT_MAX5, matrix::dot(n, aa, uu), day);
-
-		delete [] mem;
+		double ym = matrix::dot(n, aam, A + (n * i));
+		double m = (i >= 0) ? bbm[i] : ym;
+		dbinterpolator.insert_result(cod, day, INTERPT_RMIN5, ym, day);
+		DLOG("Regression::calculate(%s, %d) -> (%d) min %g/%g (%g)", cod, start, i, ym, m, ym - m);
+		double yM = matrix::dot(n, aaM, A + (n * i));
+		double M = (i >= 0) ? bbM[i] : yM;
+		dbinterpolator.insert_result(cod, day, INTERPT_RMAX5, yM, day);
+		DLOG("Regression::calculate(%s, %d) -> (%d) max %g/%g (%g)", cod, start, i, yM, M, yM - M);
 
 		ILOG("Regression::calculate(%s) -> insert %08d", cod, day);
 		if (!force_until)
-			return;
+			break;
 	}
+	delete [] bbm;
+	delete [] bbM;
+	delete [] uu;
+	delete [] aam;
+	delete [] aaM;
 }
 
 int Regression::run()
