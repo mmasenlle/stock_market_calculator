@@ -3,6 +3,8 @@
 #include "utils.h"
 #include "DBinterpolator.h"
 
+//#define DBINTERPOLATOR_ST_COEFFICIENTS
+
 DBinterpolator::DBinterpolator(CcltorDB *db) : mdb(db) {}
 
 int DBinterpolator::insert_equation(const char *value, int yyyymmdd, int type,
@@ -15,7 +17,6 @@ int DBinterpolator::insert_equation(const char *value, int yyyymmdd, int type,
 				value, yyyymmdd, type);
 	PGresult *r = mdb->exec_sql(buffer);
 	if (r) PQclear(r);
-#ifdef DBINTERPOLATOR_ST_EQUATION_DATA
 	snprintf(buffer, sizeof(buffer),
 			"SELECT id FROM interpolator_equation WHERE value = '%s' AND date = '%08d' AND type = %d;",
 			value, yyyymmdd, type);
@@ -35,6 +36,7 @@ int DBinterpolator::insert_equation(const char *value, int yyyymmdd, int type,
 		PQclear(r);
 		ret++;
 	}
+#ifdef DBINTERPOLATOR_ST_COEFFICIENTS
 	for (int i = 0; i < n; i++)
 	{
 		snprintf(buffer, sizeof(buffer),
@@ -192,10 +194,10 @@ int DBinterpolator::get_results(const char *value, int type, int yyyymmdd_start,
 	if (yyyymmdd_end < 20000101) yyyymmdd_end = 20500101;
 	char buffer[512];
 	snprintf(buffer, sizeof(buffer),
-			"SELECT result, interpolator_equation.date FROM interpolator_results, interpolator_equation "
+			"SELECT result, interpolator_results.date FROM interpolator_results, interpolator_equation "
 			"WHERE type = %d AND interpolator_results.value = '%s' AND id = equation "
-			"AND interpolator_equation.date >= '%08d' AND interpolator_equation.date <= '%08d' "
-			"ORDER BY interpolator_equation.date, equation;",
+			"AND interpolator_results.date >= '%08d' AND interpolator_results.date <= '%08d' "
+			"ORDER BY interpolator_results.date, equation;",
 			type, value, yyyymmdd_start, yyyymmdd_end);
 	PGresult *r = mdb->exec_sql(buffer);
 	if (r)
