@@ -64,13 +64,13 @@ void Output::get_data(const OutpDesc *desc, std::vector<double> *data, std::vect
 				desc->day_start, desc->day_end,
 				data, &times[0]);
 		break;
-	case OUTPTYPE_IMIN ... OUTPTYPE_IMAX:
+	case OUTPTYPE_IMIN ... OUTPTYPE_RMAX:
 		dbinterpolator.get_results(desc->value.c_str(), desc->type - OUTPTYPE_IMIN + INTERPT_MIN5,
 				desc->day_start, desc->day_end,
 				data, &times[0]);
 		break;
-	case OUTPTYPE_IEMIN ... OUTPTYPE_IEMAX:
-		dbinterpolator.get_equations(desc->value.c_str(), desc->type - OUTPTYPE_IEMIN + INTERPT_MIN5,
+	case OUTPTYPE_EIMIN ... OUTPTYPE_ERMAX:
+		dbinterpolator.get_equations(desc->value.c_str(), desc->type - OUTPTYPE_EIMIN + INTERPT_MIN5,
 				desc->day_start, desc->day_end,
 				data, &times[0], &times[1]);
 		break;
