@@ -6,6 +6,17 @@
 
 int main(int argc, char *argv[])
 {
+	double Xr[] = { 11, 12, 13, 21, 22, 23 };
+	double XrT[6], XrXrT[4], XrTXr[9];
+	matrix::transp(2, 3, Xr, XrT);
+	printf("\nXr:  "); for (int i = 0; i < ARRAY_SIZE(Xr); i++) printf("%g ", Xr[i]);
+	printf("\nXrT: "); for (int i = 0; i < ARRAY_SIZE(XrT); i++) printf("%g ", XrT[i]);
+	matrix::mul(3, 2, 3, XrT, Xr, XrTXr);
+	printf("\nXrTXr:  "); for (int i = 0; i < ARRAY_SIZE(XrTXr); i++) printf("%g ", XrTXr[i]);
+	matrix::mul(2, 3, 2, Xr, XrT, XrXrT);
+	printf("\nXrXrT:  "); for (int i = 0; i < ARRAY_SIZE(XrXrT); i++) printf("%g ", XrXrT[i]);
+
+	
 	double X[] = { 11, 12, 13, 21, 22, 23, 31, 32, 33 };
 	double C[9],XT[9];
 	
