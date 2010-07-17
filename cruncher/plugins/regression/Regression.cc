@@ -103,7 +103,8 @@ void Regression::calculate(const char *cod, int start)
 		    !manager->cache->statistics__get_day(&dbstatistics, cod,
 			    STATISTICS_ITEM_VOLUME, STATISTICS_STC_CLOSE, day_tail, &x.x[3]))
 		{
-			empty_queue.push_back(day_tail);
+			if (day_tail != start) empty_queue.push_back(day_tail);
+			else start = utils::dec_day(start);
 			if (!force_until || day_tail < force_until) empty_days++;
 			if (empty_days > 15)
 			{
@@ -184,17 +185,18 @@ void Regression::calculate(const char *cod, int start)
 			continue;
 		}
 		double ym = matrix::dot(n, aam, A + (n * i));
+		dbinterpolator.insert_result(cod, day, INTERPT_RMIN5, ym, start);
 		double m = (i >= 0) ? bbm[i] : ym;
-		dbinterpolator.insert_result(cod, day, INTERPT_RMIN5, ym, day);
-		DLOG("Regression::calculate(%s, %d) -> (%d) min %g/%g (%g)", cod, start, i, ym, m, ym - m);
+		DLOG("Regression::calculate(%s, %d) -> (%d) min %g/%g (%g)", cod, day, i, ym, m, ym - m);
 		double yM = matrix::dot(n, aaM, A + (n * i));
+		dbinterpolator.insert_result(cod, day, INTERPT_RMAX5, yM, start);
 		double M = (i >= 0) ? bbM[i] : yM;
-		dbinterpolator.insert_result(cod, day, INTERPT_RMAX5, yM, day);
-		DLOG("Regression::calculate(%s, %d) -> (%d) max %g/%g (%g)", cod, start, i, yM, M, yM - M);
+		DLOG("Regression::calculate(%s, %d) -> (%d) max %g/%g (%g)", cod, day, i, yM, M, yM - M);
 
 		ILOG("Regression::calculate(%s) -> insert %08d", cod, day);
 		if (!force_until)
 			break;
+		i++;
 	}
 	delete [] bbm;
 	delete [] bbM;
