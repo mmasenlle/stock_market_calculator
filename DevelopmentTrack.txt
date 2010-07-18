@@ -245,4 +245,10 @@ Sat Jul 10 22:46:55 CEST 2010
   of data.
   +Apply and evolution algorithm on the vectors to improve the best function
   +Evaluate the function for the values, going back if force_until
+Comments: it's been done much more easily, using AtAu=Atb. The model is the
+same as in interpolator, and can be adjusted in the future with the availability 
+of the data. It is done by each value, to avoid the normalization of the data.
+Seems to work quite well and now is time to run it everyday and check the guessed
+values.
+
 
