@@ -143,14 +143,12 @@ void Regression::calculate(const char *cod, int start)
 		}
 		set_x(jj->x, _aa);
 	}
-	DLOG("Regression::calculate(%s, %d) -> A", cod, start);
 	double *At = new double[n * m];
 	matrix::transp(m, n, A, At);
 	double *AtA = new double[n * n];
 	double *Atbbm = new double[n];
 	double *AtbbM = new double[n];
 	matrix::mul(n, m, n, At, A, AtA);
-	DLOG("Regression::calculate(%s, %d) -> AtA", cod, start);
 	matrix::mul(n, m, 1, At, bbm, Atbbm);
 	matrix::mul(n, m, 1, At, bbM, AtbbM);
 	delete [] At;
@@ -166,18 +164,16 @@ void Regression::calculate(const char *cod, int start)
 	delete [] U;
 	delete [] Atbbm;
 	delete [] AtbbM;
-	DLOG("Regression::calculate(%s, %d) -> aam, aaM", cod, start);
 	double em = 0, eM = 0;
 	for (int i = 0; i < m; i++)
 	{
 		em += fabs(matrix::dot(n, aam, A + (n * i)) - bbm[i]);
 		eM += fabs(matrix::dot(n, aaM, A + (n * i)) - bbM[i]);
 	}
-	DLOG("Regression::calculate(%s, %d) -> em: %g, eM: %g", cod, start, em, eM);
+	DLOG("Regression::calculate(%s, %d) -> (m, n): %d, %d; em: %g, eM: %g", cod, start, m, n, em, eM);
 	dbinterpolator.insert_equation(cod, start, INTERPT_RMIN5, em, n, aam);
 	dbinterpolator.insert_equation(cod, start, INTERPT_RMAX5, eM, n, aaM);
-	DLOG("Regression::calculate(%s, %d) -> insert_equation", cod, start);
-	for (int day = start, i = -1; force_until < day; day = utils::dec_day(day))
+	for (int day = start, i = -1; force_until < day, i < m; day = utils::dec_day(day))
 	{
 		if (!empty_queue.empty() && empty_queue.front() == day)
 		{
@@ -187,13 +183,12 @@ void Regression::calculate(const char *cod, int start)
 		double ym = matrix::dot(n, aam, A + (n * i));
 		dbinterpolator.insert_result(cod, day, INTERPT_RMIN5, ym, start);
 		double m = (i >= 0) ? bbm[i] : ym;
-		DLOG("Regression::calculate(%s, %d) -> (%d) min %g/%g (%g)", cod, day, i, ym, m, ym - m);
+		ILOG("Regression::calculate(%s, %d) -> (%d) min %g/%g (%g)", cod, day, i, ym, m, ym - m);
 		double yM = matrix::dot(n, aaM, A + (n * i));
 		dbinterpolator.insert_result(cod, day, INTERPT_RMAX5, yM, start);
 		double M = (i >= 0) ? bbM[i] : yM;
-		DLOG("Regression::calculate(%s, %d) -> (%d) max %g/%g (%g)", cod, day, i, yM, M, yM - M);
+		ILOG("Regression::calculate(%s, %d) -> (%d) max %g/%g (%g)", cod, day, i, yM, M, yM - M);
 
-		ILOG("Regression::calculate(%s) -> insert %08d", cod, day);
 		if (!force_until)
 			break;
 		i++;
