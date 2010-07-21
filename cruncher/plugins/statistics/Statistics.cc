@@ -275,9 +275,9 @@ int Statistics::run()
 					recentst_time = times[times.size() - 1];
 					break;
 				}
-				if (!force_until && j > 25)
+				if (!force_until && j > 5)
 				{
-					WLOG("Statistics::run(%s) -> can't find recentst day", codes[i].c_str());
+					DLOG("Statistics::run(%s) -> can't find recentst day", codes[i].c_str());
 					break;
 				}	
 				recentst_day = utils::dec_day(recentst_day);
