@@ -154,48 +154,52 @@ void Regression::calculate(const char *cod, int start)
 	delete [] At;
 	double *L = new double[n * n];
 	double *U = new double[n * n];
-	if (matrix::lu(n, AtA, L, U))
-	{
-		double *aam = new double[n];
-		double *aaM = new double[n];
-		equation::linsolve(n, Atbbm, L, U, aam);
-		equation::linsolve(n, AtbbM, L, U, aaM);
-		double em = 0, eM = 0;
-		for (int i = 0; i < m; i++)
-		{
-			em += fabs(matrix::dot(n, aam, A + (n * i)) - bbm[i]);
-			eM += fabs(matrix::dot(n, aaM, A + (n * i)) - bbM[i]);
-		}
-		DLOG("Regression::calculate(%s, %d) -> (m, n): %d, %d; em: %g, eM: %g", cod, start, m, n, em, eM);
-		dbinterpolator.insert_equation(cod, start, INTERPT_RMIN5, em, n, aam);
-		dbinterpolator.insert_equation(cod, start, INTERPT_RMAX5, eM, n, aaM);
-		for (int day = start, i = -1; force_until < day, i < m; day = utils::dec_day(day))
-		{
-			if (!empty_queue.empty() && empty_queue.front() == day)
-			{
-				empty_queue.pop_front();
-				continue;
-			}
-			double ym = matrix::dot(n, aam, A + (n * i));
-			dbinterpolator.insert_result(cod, day, INTERPT_RMIN5, ym, start);
-			double m = (i >= 0) ? bbm[i] : ym;
-			ILOG("Regression::calculate(%s, %d) -> (%d) min %g/%g (%g)", cod, day, i, ym, m, ym - m);
-			double yM = matrix::dot(n, aaM, A + (n * i));
-			dbinterpolator.insert_result(cod, day, INTERPT_RMAX5, yM, start);
-			double M = (i >= 0) ? bbM[i] : yM;
-			ILOG("Regression::calculate(%s, %d) -> (%d) max %g/%g (%g)", cod, day, i, yM, M, yM - M);
-
-			if (!force_until)
-				break;
-			i++;
-		}
-		delete [] aam;
-		delete [] aaM;
-	}
-	else
+	double *aam = new double[n];
+	double *aaM = new double[n];
+	double em = 0, eM = 0;
+	if (!matrix::lu(n, AtA, L, U))
 	{
 		WLOG("Regression::calculate(%s, %d) -> matrix::lu() failed (%d, %d)", cod, start, m, n);
+		goto cleanup;
 	}
+	equation::linsolve(n, Atbbm, L, U, aam);
+	equation::linsolve(n, AtbbM, L, U, aaM);
+	for (int i = 0; i < m; i++)
+	{
+		em += fabs(matrix::dot(n, aam, A + (n * i)) - bbm[i]);
+		eM += fabs(matrix::dot(n, aaM, A + (n * i)) - bbM[i]);
+	}
+	DLOG("Regression::calculate(%s, %d) -> (m, n): %d, %d; em: %g, eM: %g", cod, start, m, n, em, eM);
+	if (em != em || eM != eM)
+	{
+		WLOG("Regression::calculate(%s, %d) -> e == NaN", cod, start);
+		goto cleanup;
+	}
+	dbinterpolator.insert_equation(cod, start, INTERPT_RMIN5, em, n, aam);
+	dbinterpolator.insert_equation(cod, start, INTERPT_RMAX5, eM, n, aaM);
+	for (int day = start, i = -1; force_until < day && i < m; day = utils::dec_day(day))
+	{
+		if (!empty_queue.empty() && empty_queue.front() == day)
+		{
+			empty_queue.pop_front();
+			continue;
+		}
+		double ym = matrix::dot(n, aam, A + (n * i));
+		dbinterpolator.insert_result(cod, day, INTERPT_RMIN5, ym, start);
+		double m = (i >= 0) ? bbm[i] : ym;
+		ILOG("Regression::calculate(%s, %d) -> (%d) min %g/%g (%g)", cod, day, i, ym, m, ym - m);
+		double yM = matrix::dot(n, aaM, A + (n * i));
+		dbinterpolator.insert_result(cod, day, INTERPT_RMAX5, yM, start);
+		double M = (i >= 0) ? bbM[i] : yM;
+		ILOG("Regression::calculate(%s, %d) -> (%d) max %g/%g (%g)", cod, day, i, yM, M, yM - M);
+
+		if (!force_until)
+			break;
+		i++;
+	}
+cleanup:
+	delete [] aam;
+	delete [] aaM;
 	delete [] AtA;
 	delete [] L;
 	delete [] U;
