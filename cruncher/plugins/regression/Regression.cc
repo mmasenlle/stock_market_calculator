@@ -86,38 +86,48 @@ static void set_x(double *x, double *v)
 void Regression::calculate(const char *cod, int start)
 {
 	DLOG("Regression::calculate(%s, %d)", cod, start);
+	std::vector<double> v[INTERPM_M];
+	std::vector<int> d[INTERPM_M];
+	dbstatistics.get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MIN, 0, start, &v[0], &d[0]);
+	dbstatistics.get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_MAX, 0, start, &v[1], &d[1]);
+	dbstatistics.get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_CLOSE, 0, start, &v[2], &d[2]);
+	dbstatistics.get_day(cod, STATISTICS_ITEM_PRICE, STATISTICS_STC_STD, 0, start, &v[3], &d[3]);
+	dbstatistics.get_day(cod, STATISTICS_ITEM_VOLUME, STATISTICS_STC_CLOSE, 0, start, &v[4], &d[4]);	
 	int n = 1 + (INTERPM_R * INTERPM_M * INTERPM_K);
 	std::list<x_t> xx;
 	std::list<int> empty_queue;
-	for (int day_tail = start, empty_days = 0;; day_tail = utils::dec_day(day_tail))
+	bool bbreak = false;
+	for (int day_tail = start; !bbreak; day_tail = utils::dec_day(day_tail))
 	{
 		x_t x;
-		if (!manager->cache->statistics__get_day(&dbstatistics, cod,
-		    STATISTICS_ITEM_PRICE, STATISTICS_STC_MIN, day_tail, &x.x[0]) ||
-		    !manager->cache->statistics__get_day(&dbstatistics, cod,
-			    STATISTICS_ITEM_PRICE, STATISTICS_STC_MAX, day_tail, &x.x[1]) ||
-		    !manager->cache->statistics__get_day(&dbstatistics, cod,
-			    STATISTICS_ITEM_PRICE, STATISTICS_STC_CLOSE, day_tail, &x.x[2]) ||
-			!manager->cache->statistics__get_day(&dbstatistics, cod,
-			    STATISTICS_ITEM_PRICE, STATISTICS_STC_STD, day_tail, &x.x[3]) ||
-		    !manager->cache->statistics__get_day(&dbstatistics, cod,
-			    STATISTICS_ITEM_VOLUME, STATISTICS_STC_CLOSE, day_tail, &x.x[4]))
+		for (int i = 0; i < INTERPM_M; i++)
 		{
-			if (day_tail != start) empty_queue.push_back(day_tail);
-			else start = utils::dec_day(start);
-			if (!force_until || day_tail < force_until) empty_days++;
-			if (empty_days > 15)
+			while (!d[i].empty() && d[i].back() > day_tail) 
+				d[i].pop_back(), v[i].pop_back();
+			if (d[i].empty())
 			{
-				DLOG("Regression::calculate(%s) -> %08d..%08d (%d,%d) breaking ...",
-				    cod, day_tail, start, empty_days, xx.size());
-				if (xx.size() >= (n + INTERPM_K)) break;
+				DLOG("Regression::calculate(%s) -> %08d..%08d (%d) breaking ...",
+					    cod, day_tail, start, xx.size());
+				if (xx.size() >= (n + INTERPM_K))
+				{
+					bbreak = true;
+					break;
+				}
 				else return;
 			}
-			continue;
+			if (d[i].back() != day_tail)
+			{
+				if (day_tail != start) empty_queue.push_back(day_tail);
+				else start = utils::dec_day(start);
+				break;
+			}
+			x.x[i] = v[i].back();
+			if (i == 4)
+			{
+				x.x[4] = log(x.x[4]);
+				xx.push_back(x);
+			}
 		}
-		x.x[4] = log(x.x[4]);
-		empty_days = 0;
-		xx.push_back(x);
 	}
 	int m = xx.size() - INTERPM_K;
 	double *bbm = new double[m];
@@ -143,6 +153,7 @@ void Regression::calculate(const char *cod, int start)
 		}
 		set_x(jj->x, _aa);
 	}
+	xx.clear();
 	double *At = new double[n * m];
 	matrix::transp(m, n, A, At);
 	double *AtA = new double[n * n];
