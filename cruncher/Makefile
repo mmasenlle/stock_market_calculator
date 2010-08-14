@@ -1,6 +1,8 @@
 SRC_ROOT = ..
 include $(SRC_ROOT)/flags.mk
 
+LDFLAGS += -pthread
+
 TARGET = ccltor_cruncher
 
 sources = $(wildcard *.cc)
