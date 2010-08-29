@@ -63,7 +63,7 @@ int Regression::init(ICruncherManager *icm)
 
 #define INTERPM_R 3
 #define INTERPM_M 5
-#define INTERPM_K 4 //5
+#define INTERPM_K 5
 
 struct x_t
 {
