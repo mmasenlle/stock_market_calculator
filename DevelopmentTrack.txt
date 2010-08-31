@@ -252,3 +252,10 @@ Seems to work quite well and now is time to run it everyday and check the guesse
 values.
 
 
+Tue Aug 31 19:16:42 CEST 2010
+ Goodness I (for forecasted values)
+------------------------------------
+ -A table goodness_regression with correlations and an index
+ -A cruncher plugin
+  +Calculate the correlations of the guessed rmax and rmin
+  +Calculate an index to show the reliability of the forecast
