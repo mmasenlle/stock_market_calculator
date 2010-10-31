@@ -17,12 +17,14 @@ sub put_num
     print "<$_[1]>$num</$_[1]>";
 }
 
-$starting_line = "<b>Ticker</b>";
-#$data_pattern = "fichavalor.asp[?]isin=([^\"]+)\">[^>]*> (.*)</A></TD><TD>([^<]+)</TD><TD[^<]+</TD><TD[^<]+</TD><TD[^<]+</TD><TD>([^<]+)</TD><TD>([^<]+)</TD><TD[^<]+</TD><TD[^>]*>([^<]+)</TD></TR>";
-$data_pattern = "empresa.asp[?]idtel=[^=]+='([^']*)'>([^<]+)</a></td><td[^>]*>([^&]+)&nbsp;</td><td[^<]+</td><td[^<]+</td><td[^>]+>(<img[^>]+>)*</td><td[^<]+</td><td[^<]+</td><td[^>]*>([^&]+)&nbsp;</td><td[^>]*>([^<]+)";
-#empresa.asp?idtel=RV011AUCESA title='ABERTIS'>ABE</a></td><td CLASS=TABLA NOWRAP>12,215&nbsp;</td><td CLASS=TABLA NOWRAP>-0,120&nbsp;</td><td CLASS=TABLA NOWRAP  >-1,0%</td><td align=right NOWRAP class=TABLA><img src=/img/i/pr.gif width=5,076 height=10><img src=/img/i/pt.gif width=39,984 height=10></td><td CLASS=TABLA>12,460&nbsp;</td><td CLASS=TABLA>12,090&nbsp;</td><td CLASS=TABLA  >767.505&nbsp;</td><td CLASS=TABLA width=60  >9.027<td class=TABLA NOWRAP  >4,91%</td><td class=TABLA NOWRAP  > 13,68</td>
-#$value_pattern = "<a href=\"\/bolsa\/cotizaciones\/Ficha[?]cod=([^\"]+)\"[^>]+>(.*)<\/a>";
-$time_pattern = "^<td CLASS=TABLA>&nbsp;(.+)";
+#$starting_line = "<b>Ticker</b>";
+$starting_line = "<table title=\"Acciones\"";
+#portada.asp[?]idtel=RV011A3TV" title="ANTENA 3">A3TV</a>
+$value_pattern = "portada.asp[?]idtel=.+title=\"([^\"]+)\">(.*)<\/a>";
+#$data_pattern = "empresa.asp[?]idtel=[^=]+='([^']*)'>([^<]+)</a></td><td[^>]*>([^&]+)&nbsp;</td><td[^<]+</td><td[^<]+</td><td[^>]+>(<img[^>]+>)*</td><td[^<]+</td><td[^<]+</td><td[^>]*>([^&]+)&nbsp;</td><td[^>]*>([^<]+)";
+$data_pattern = "<td>([^<]+)</td><td>[^<]*</td><td>[^<]*</td><td><img[^>]*><img[^>]*></td><td>[^<]*</td><td>[^<]*</td><td>([^<]+)</td><td>([^<]+)</td>";
+#<td>6.79</td><td>0.20</td><td>3.0</td><td><img src=/images/pv.gif alt="Gr&aacute;fico" width=2.22 height=9><img src=/images/pt.gif alt="Gr&aacute;fico" width=29.52 height=9></td><td>6.89</td><td>6.55</td><td>488,863</td><td>1,433</td><td>5.60&nbsp;%</td><td> 14.02</td>
+$time_pattern = "<td>([^<]+)</td>";
 $state = 0; # state = { init, value, price,  diffp, diff, max, min, volume, capital, time,  end }
 
 foreach $_ (<STDIN>)
@@ -37,36 +39,39 @@ foreach $_ (<STDIN>)
     }
     else
     {
-        if (/$data_pattern/) # code, name, price, volume, capital, time
-        {
-            if ($state != 1)
-            {
-                print "</value>\n";
-            }
-            print "<value>";
-            &put_str("M.$2", "code");
-            &put_str($1, "name");
-            &put_num($3, "price");
-            &put_num($5, "volume");
-            &put_num($6, "capital");
-            $state = 9;
-        }
-        elsif ($state == 9)
-	{
-		if (/$time_pattern/)
+		if ($state == 1)
 		{
-		    print "<time>$1</time>";
-		    $state++;
+		    if (/$value_pattern/) # name, code
+			{
+				print "<value>";
+				&put_str("M.$2", "code");
+				&put_str($1, "name");
+				$state = 3;
+			}
 		}
-	}
+		elsif ($state == 3)
+        {
+            if (/$data_pattern/) # price, volume, capital
+            {
+				&put_num($1, "price");
+				&put_num($2, "volume");
+				&put_num($3, "capital");
+				$state = 6;
+			}
+        }
+        elsif ($state == 6)
+		{
+			if (/$time_pattern/)
+			{
+				print "<time>$1</time>";
+				print "</value>\n";
+				$state = 1;
+			}
+		}
     }
 }
 
 if ($state != 0)
 {
-    if ($state != 1)
-    {
-        print "</value>\n";
-    }
     print "</ccltor_xml_data>\n";
 }
